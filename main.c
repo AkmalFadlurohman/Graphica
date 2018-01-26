@@ -70,17 +70,16 @@ int main() {
 
     struct f_Image* plane = f_loadImage(fileName);
     plane->posX = vinfo.xres;
-    while(plane->posX > 0 ){
+    while (1) {
         plane->posX--;
+        if (plane->posX < -plane->width) {
+            plane->posX = vinfo.xres;
+            plane->posY += 7;
+        }
         drawObject(plane, 1);
-        usleep(3);
-
+        usleep(3000);
     }
-
     f_freeImage(plane);
-
-
-
 
     munmap(fbp, screensize);
     close(fbfd);

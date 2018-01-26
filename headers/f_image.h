@@ -19,10 +19,10 @@ struct f_Image {
 	struct f_Pixel** bitmap;	
 };
 
+unsigned int rgbaToInt(int r, int g, int b, int a);
 struct f_Pixel* f_initPixel(int r, int g, int b, int a);
 void f_modPixel(struct f_Pixel* pixel, int r, int g, int b, int a);
 void f_freePixel(struct f_Pixel* pixel);
-unsigned int rgbaToInt(int r, int g, int b, int a);
 struct f_Image* f_initImage(size_t width,size_t height);
 void f_freeImage(struct f_Image* image);
 

@@ -17,6 +17,7 @@
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
+
 char *fbp = 0;
 void tick();
 void drawPixel(int x, int y, unsigned int color);
@@ -25,6 +26,7 @@ void drawLine(double x0, double y0, double x1, double x2);
 void drawLineLow(double x0, double y0, double x1, double y1);
 void drawLineHigh(double x0, double y0, double x1, double y1);
 void drawLineEX(double x0, double y0, double x1, double y2);
+void drawTravel(int x0, int y0, int dx, int dy, int t);
 
 int main() {
 
@@ -73,7 +75,10 @@ int main() {
 
     struct f_Image* plane = f_loadImage(fileName);
     plane->posX = vinfo.xres;
-    while(-(plane->posX) != plane->width ){
+    int t = 0;
+    int delay = 0;
+    while(1){
+
         plane->posX--;
         if (plane->posX < -plane->width) {
             plane->posX = vinfo.xres;
@@ -81,14 +86,17 @@ int main() {
         }
         drawObject(plane, 1);
         usleep(3000);
+        drawTravel(200, 200, 10, -5, t);
+        drawTravel(200, 200, 5, -5, t);
+        drawTravel(200, 200, 0, -5, t);
+        if (delay % 10 == 0) {
+            t++;
+        }
+        delay++;
     }
 
     f_freeImage(plane);
 
-    drawLineEX(100, 100, 120, 110);
-    drawLineEX(140, 130, 120, 150);
-    drawLineEX(100, 100, 100, 200);
-    drawLineEX(100, 170, 200, 170);
 
     munmap(fbp, screensize);
     close(fbfd);
@@ -208,4 +216,11 @@ void drawLine(double x0, double y0, double x1, double y1) {
             error -= 1.0;
         }
     }
+}
+
+void drawTravel(int x0, int y0, int dx, int dy, int t) {
+    int x1 = x0 + dx * t;
+    int y1 = y0 + dy * t;
+
+    drawLineEX(x0, y0, x1 <= 0 ? 0 : x1, y1 <= 0 ? 0 : y1);
 }

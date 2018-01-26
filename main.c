@@ -75,9 +75,12 @@ int main() {
     plane->posX = vinfo.xres;
     while(-(plane->posX) != plane->width ){
         plane->posX--;
+        if (plane->posX < -plane->width) {
+            plane->posX = vinfo.xres;
+            plane->posY += 7;
+        }
         drawObject(plane, 1);
-        usleep(1000);
-
+        usleep(3000);
     }
 
     f_freeImage(plane);

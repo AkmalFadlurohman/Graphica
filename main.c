@@ -95,7 +95,7 @@ int main() {
         drawLaser(centerX, fullY, -10, -10, &t4);
         drawLaser(centerX, fullY, -5, -10, &t5);
         drawLaser(centerX, fullY, -3, -2, &t6);
-        if (delay %30 == 0) {
+        if (delay %10 == 0) {
             t1++; t2++; t3++; t4++; t5++; t6++;
         }
         delay++;

@@ -65,17 +65,18 @@ int main() {
         exit(4);
     }
     system("clear");
-    for (i=0; i<vinfo.yres/17; i++) {
-      printf("\n");
-    }
+    // for (i=0; i<vinfo.yres/17; i++) {
+    //   printf("\n");
+    // }
 
     /*Rendering starts here */
-
     char* fileName = "assets/plane.txt";
 
     struct f_Image* plane = f_loadImage(fileName);
     plane->posX = vinfo.xres;
-    int t = 0;
+    int t = 0, centerX = vinfo.xres/2/SCALE, bottomY = vinfo.yres/2 - 1;
+    printf("Bottom Y: %d\n", vinfo.yres/SCALE);
+    drawPixel(centerX, bottomY, rgbaToInt(255,0,0,0));
     int delay = 0;
     while(1){
 
@@ -86,9 +87,12 @@ int main() {
         }
         drawObject(plane, 1);
         usleep(3000);
-        drawTravel(200, 200, 10, -5, t);
-        drawTravel(200, 200, 5, -5, t);
-        drawTravel(200, 200, 0, -5, t);
+        drawTravel(centerX, bottomY, 10, -10, t);
+        drawTravel(centerX, bottomY, 5, -3, t);
+        drawTravel(centerX, bottomY, 0, -10, t);
+        drawTravel(centerX, bottomY, -10, -10, t);
+        drawTravel(centerX, bottomY, -5, -10, t);
+        drawTravel(centerX, bottomY, -0, -2, t);
         if (delay % 10 == 0) {
             t++;
         }

@@ -23,10 +23,13 @@ void tick();
 int isValidPoint(int x, int y);
 void drawPixel(int x, int y, unsigned int color);
 void drawObject(struct f_Image* obj, int dir /*0 = right, 1 = left*/);
-void drawLineLow(double x0, double y0, double x1, double y1);
-void drawLineHigh(double x0, double y0, double x1, double y1);
-void drawLine(double x0, double y0, double x1, double y2);
+void drawLineLow(double x0, double y0, double x1, double y1, int color);
+void drawLineHigh(double x0, double y0, double x1, double y1, int color);
+void drawLine(double x0, double y0, double x1, double y2, int color);
 void drawTravel(int x0, int y0, int dx, int dy, int t);
+
+int centerX = 0;
+int fullY = 0;
 
 int main() {
 
@@ -64,39 +67,37 @@ int main() {
         perror("Error: failed to map framebuffer device to memory");
         exit(4);
     }
-    system("clear");
-    // for (i=0; i<vinfo.yres/17; i++) {
-    //   printf("\n");
-    // }
 
-    /*Rendering starts here */
+    /*Render and start animation*/
     char* fileName = "assets/plane.txt";
 
     struct f_Image* plane = f_loadImage(fileName);
     plane->posX = vinfo.xres;
-    int t = 0, centerX = vinfo.xres/2/SCALE, bottomY = vinfo.yres/2 - 1;
+    int t = 0; centerX = vinfo.xres/2/SCALE, fullY = vinfo.yres/2 - 1;
     printf("Bottom Y: %d\n", vinfo.yres/SCALE);
-    drawPixel(centerX, bottomY, rgbaToInt(255,0,0,0));
     int delay = 0;
-    while(1){
+    
+    system("clear");
 
+    while(1){
         plane->posX--;
         if (plane->posX < -plane->width) {
             plane->posX = vinfo.xres;
             plane->posY += 7;
         }
         drawObject(plane, 1);
-        usleep(3000);
-        drawTravel(centerX, bottomY, 10, -10, t);
-        drawTravel(centerX, bottomY, 5, -3, t);
-        drawTravel(centerX, bottomY, 0, -10, t);
-        drawTravel(centerX, bottomY, -10, -10, t);
-        drawTravel(centerX, bottomY, -5, -10, t);
-        drawTravel(centerX, bottomY, -0, -2, t);
-        if (delay % 10 == 0) {
+        drawTravel(centerX, fullY, 10, -10, t);
+        drawTravel(centerX, fullY, 5, -3, t);
+        drawTravel(centerX, fullY, 0, -10, t);
+        drawTravel(centerX, fullY, -10, -10, t);
+        drawTravel(centerX, fullY, -5, -10, t);
+        drawTravel(centerX, fullY, -3, -2, t);
+        if (delay %70 == 0) {
             t++;
         }
         delay++;
+        
+        usleep(3000);
     }
 
     f_freeImage(plane);
@@ -108,7 +109,7 @@ int main() {
 }
 
 int isValidPoint(int x, int y) {
-    if (x >= 0 && x < vinfo.xres && y >=0 && y < vinfo.yres)
+    if (x >= 0 && x < vinfo.xres/SCALE && y >=0 && y < vinfo.yres/SCALE)
         return 1;
 
     return 0;
@@ -144,7 +145,7 @@ void drawObject(struct f_Image* obj, int dir /*0 = right, 1 = left*/){
     }
 }
 
-void drawLineLow(double x0, double y0, double x1, double y1) {
+void drawLineLow(double x0, double y0, double x1, double y1, int color) {
     double dx, dy, D;
     dx = x1 - x0;
     dy = y1 - y0;
@@ -160,7 +161,7 @@ void drawLineLow(double x0, double y0, double x1, double y1) {
     for (double x = x0; x < x1; x++) {
         if (isValidPoint(x, y) == 0)
             return;
-        drawPixel(x, y, rgbaToInt(255, 0, 0, 0));
+        drawPixel(x, y, color);
         if (D > 0) {
             y += yi;
             D -= 2 * dx;
@@ -169,7 +170,7 @@ void drawLineLow(double x0, double y0, double x1, double y1) {
     }
 }
 
-void drawLineHigh(double x0, double y0, double x1, double y1) {
+void drawLineHigh(double x0, double y0, double x1, double y1, int color) {
     double dx, dy, D;
     dx = x1 - x0;
     dy = y1 - y0;
@@ -186,7 +187,7 @@ void drawLineHigh(double x0, double y0, double x1, double y1) {
     for (double y = y0; y < y1; y++) {
         if (isValidPoint(x, y) == 0)
             return;
-        drawPixel(x, y, rgbaToInt(0, 255, 0, 0));
+        drawPixel(x, y, color);
         if (D > 0) {
             x += xi;
             D -= 2 * dy;
@@ -196,22 +197,25 @@ void drawLineHigh(double x0, double y0, double x1, double y1) {
     }
 }
 
-void drawLine(double x0, double y0, double x1, double y1) {
+void drawLine(double x0, double y0, double x1, double y1, int color) {
     if (abs(y1 - y0) < abs(x1 - x0)) {
         if (x0 > x1) {
-            drawLineLow(x1, y1, x0, y0);
+            drawLineLow(x1, y1, x0, y0, color);
         } else {
-            drawLineLow(x0, y0, x1, y1);
+            drawLineLow(x0, y0, x1, y1, color);
         }
     } else {
         if (y0 > y1) {
-            drawLineHigh(x1, y1, x0, y0);
+            drawLineHigh(x1, y1, x0, y0, color);
         } else {
-            drawLineHigh(x0, y0, x1, y1);
+            drawLineHigh(x0, y0, x1, y1, color);
         }
     }
 }
 
 void drawTravel(int x0, int y0, int dx, int dy, int t) {
-    drawLine(x0, y0, x0 + dx * t, y0 + dy * t);
+    drawLine(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,0,0,0));
+    x0 = x0 + dx * t;
+    y0 = y0 + dy * t;
+    drawLine(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,255,0,0));
 }

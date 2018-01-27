@@ -97,7 +97,7 @@ int main() {
         drawLaser(vinfo.xres/18, vinfo.yres/9-1, 5, -3, 9, &t2);
         drawLaser(centerX, fullY, 0, -10, SCALE, &t3);
         drawLaser(centerX, fullY, -10, -10, SCALE, &t4);
-        drawLaser(centerX, fullY, -5, -10, SCALE, &t5);
+        drawLaser(vinfo.xres/20, vinfo.yres/10-1, -5, -10, 10, &t5);
         drawLaser(centerX, fullY, -3, -2, SCALE, &t6);
         if (delay %10 == 0) {
             t1++; t2++; t3++; t4++; t5++; t6++;

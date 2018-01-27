@@ -26,7 +26,7 @@ void drawObject(struct f_Image* obj, int dir /*0 = right, 1 = left*/);
 void drawLineLow(double x0, double y0, double x1, double y1, int color);
 void drawLineHigh(double x0, double y0, double x1, double y1, int color);
 void drawLine(double x0, double y0, double x1, double y2, int color);
-void drawLaser(int x0, int y0, int dx, int dy, int t);
+void drawLaser(int x0, int y0, int dx, int dy, int* pt);
 
 int centerX = 0;
 int fullY = 0;
@@ -73,7 +73,8 @@ int main() {
 
     struct f_Image* plane = f_loadImage(fileName);
     plane->posX = vinfo.xres;
-    int t = 0; centerX = vinfo.xres/2/SCALE, fullY = vinfo.yres/2 - 1;
+    int t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+    centerX = vinfo.xres/2/SCALE, fullY = vinfo.yres/2 - 1;
     printf("Bottom Y: %d\n", vinfo.yres/SCALE);
     int delay = 0;
     
@@ -88,14 +89,14 @@ int main() {
         }
         drawObject(plane, 1);
 
-        drawLaser(centerX, fullY, 10, -10, t);
-        drawLaser(centerX, fullY, 5, -3, t);
-        drawLaser(centerX, fullY, 0, -10, t);
-        drawLaser(centerX, fullY, -10, -10, t);
-        drawLaser(centerX, fullY, -5, -10, t);
-        drawLaser(centerX, fullY, -3, -2, t);
-        if (delay %70 == 0) {
-            t++;
+        drawLaser(centerX, fullY, 10, -10, &t1);
+        drawLaser(centerX, fullY, 5, -3, &t2);
+        drawLaser(centerX, fullY, 0, -10, &t3);
+        drawLaser(centerX, fullY, -10, -10, &t4);
+        drawLaser(centerX, fullY, -5, -10, &t5);
+        drawLaser(centerX, fullY, -3, -2, &t6);
+        if (delay %30 == 0) {
+            t1++; t2++; t3++; t4++; t5++; t6++;
         }
         delay++;
         
@@ -215,7 +216,12 @@ void drawLine(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawLaser(int x0, int y0, int dx, int dy, int t) {
+void drawLaser(int x0, int y0, int dx, int dy, int* pt) {
+    int t = *pt;
+    if (isValidPoint(x0 + dx * t, y0 + dy * t) == 0) {
+        t = 1; *pt = 1;
+    }
+
     drawLine(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,0,0,0));
     x0 = x0 + dx * t;
     y0 = y0 + dy * t;

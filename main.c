@@ -26,7 +26,7 @@ void drawObject(struct f_Image* obj, int dir /*0 = right, 1 = left*/);
 void drawLineLow(double x0, double y0, double x1, double y1, int color);
 void drawLineHigh(double x0, double y0, double x1, double y1, int color);
 void drawLine(double x0, double y0, double x1, double y2, int color);
-void drawTravel(int x0, int y0, int dx, int dy, int t);
+void drawLaser(int x0, int y0, int dx, int dy, int t);
 
 int centerX = 0;
 int fullY = 0;
@@ -79,19 +79,21 @@ int main() {
     
     system("clear");
 
-    while(1){
+    while (1) {
+        
         plane->posX--;
         if (plane->posX < -plane->width) {
             plane->posX = vinfo.xres;
             plane->posY += 7;
         }
         drawObject(plane, 1);
-        drawTravel(centerX, fullY, 10, -10, t);
-        drawTravel(centerX, fullY, 5, -3, t);
-        drawTravel(centerX, fullY, 0, -10, t);
-        drawTravel(centerX, fullY, -10, -10, t);
-        drawTravel(centerX, fullY, -5, -10, t);
-        drawTravel(centerX, fullY, -3, -2, t);
+
+        drawLaser(centerX, fullY, 10, -10, t);
+        drawLaser(centerX, fullY, 5, -3, t);
+        drawLaser(centerX, fullY, 0, -10, t);
+        drawLaser(centerX, fullY, -10, -10, t);
+        drawLaser(centerX, fullY, -5, -10, t);
+        drawLaser(centerX, fullY, -3, -2, t);
         if (delay %70 == 0) {
             t++;
         }
@@ -213,7 +215,7 @@ void drawLine(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawTravel(int x0, int y0, int dx, int dy, int t) {
+void drawLaser(int x0, int y0, int dx, int dy, int t) {
     drawLine(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,0,0,0));
     x0 = x0 + dx * t;
     y0 = y0 + dy * t;

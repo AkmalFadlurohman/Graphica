@@ -151,7 +151,6 @@ int main() {
     
     loadLetters("spec.txt");
     for (int i=0;i<letterCount;i++) {
-        printf("posX: %d posY: %d\n\n",letters[i]->posX,letters[i]->posY);
         printf("Number of Lines: %d\n",letters[i]->numOfLines);
         for (int j=0;j<letters[i]->numOfLines;j++) {
             printf("x1: %lf,y1: %lf,x2: %lf,y2: %lf\n",letters[i]->lines[j]->points[0]->x,letters[i]->lines[j]->points[0]->y,letters[i]->lines[j]->points[1]->x,letters[i]->lines[j]->points[1]->y);
@@ -400,19 +399,17 @@ void loadLetters(char* fileName) {
     letters = malloc(letterCount*sizeof(struct VecLetter*));
     
     while ((getline(&buffer, &bufferSize, specFile) != -1) && (i < letterCount)) {
-        int posX,posY;
-        
         lineList = (char*) malloc(256 * sizeof(char));
         critList = (char*) malloc(256 * sizeof(char));
         lineBuff = (char*) malloc(18 * sizeof(char));
         critBuff = (char*) malloc(18 * sizeof(char));
         ret = 0;
-        ret = sscanf(buffer, "%c|%d|%d|%d|%d|%d|%[^|\n]|%[^\n]s", &letterName, &letterWidth, &posX, &posY, &letterLineCount, &letterCrit, lineList, critList);
-        if (ret != 8) {
+        ret = sscanf(buffer, "%c|%d|%d|%d|%[^|\n]|%[^\n]s", &letterName, &letterWidth, &letterLineCount, &letterCrit, lineList, critList);
+        if (ret != 6) {
             printf("Error reading line %d\n",i+2);
         }
         else {
-            letters[i] = vecLetterInit(posX,posY,letterHeight, letterWidth, letterLineCount, letterCrit);
+            letters[i] = vecLetterInit(0,0,letterHeight, letterWidth, letterLineCount, letterCrit);
             lineBuff = strtok(lineList," ");
             int j = 0;
             while (lineBuff != NULL) {

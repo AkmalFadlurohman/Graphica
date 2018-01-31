@@ -1,5 +1,5 @@
 make:
-	gcc -o main main.c headers/f_VecLetter.c 
+	gcc -o main main.c headers/VecLetter.c 
 run :
 	make
 	./main

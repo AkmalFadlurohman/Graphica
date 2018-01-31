@@ -8,19 +8,21 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
-#include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#include "headers/f_VecLetter.h"
+#include "headers/VecLetter.h"
 
 #define SCALE 2
 
-struct fb_var_screeninfo vinfo;
-struct fb_fix_screeninfo finfo;
+//struct fb_var_screeninfo vinfo;
+//struct fb_fix_screeninfo finfo;
 
 char *fbp = 0;
 int centerX = 0;
 int fullY = 0;
+
+int letterCount, letterHeight;
+struct VecLetter** letters;
 
 unsigned int rgbaToInt(int r, int g, int b, int a);
 void drawPixel(int x, int y, unsigned int color);
@@ -35,13 +37,13 @@ void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color
 void drawLine(double x0, double y0, double x1, double y2, int color);
 void drawLineWithScale(double x0, double y0, double x1, double y2, int color, int Scale);
 void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
-
-void drawLine_line(struct f_Line* line, int color);
+void drawLine_line(struct Line* line, int color);
+void loadLetters(char* fileName);
 
 
 int main() {
 
-    int fbfd = 0;
+    /*int fbfd = 0;
     long int screensize = 0;
 
     // Open the file for reading and writing
@@ -74,82 +76,94 @@ int main() {
         exit(4);
     }
 
-    /*Render and start animation*/    
+    //Render and start animation
     system("clear");
 
     // Gambar dengan point (hijau)
-    struct f_Point* point1 = f_pointInit(500/3,250);
-    struct f_Point* point2 = f_pointInit(500*2/3,250);
-    struct f_Point* point3 = f_pointInit(500*2/6,100);
+    struct Point* point1 = pointInit(500/3,250);
+    struct Point* point2 = pointInit(500*2/3,250);
+    struct Point* point3 = pointInit(500*2/6,100);
 
     drawLine(point1->x, point1->y, point2->x, point2->y, rgbaToInt(0, 255,0, 0));    
     drawLine(point2->x, point2->y, point3->x, point3->y, rgbaToInt(0, 255,0, 0));
     drawLine(point1->x, point1->y, point3->x, point3->y, rgbaToInt(0, 255,0, 0));    
 
-    f_freePoint(point1);
-    f_freePoint(point2);
-    f_freePoint(point3);
+    freePoint(point1);
+    freePoint(point2);
+    freePoint(point3);
 
 
 
     // Gambar dengan line (biru)
-    struct f_Line* line1 = f_lineInit(500/3,250, 500/6, 250);
-    struct f_Line* line2 = f_lineInit(500/6,250, 500/6, 0);
-    struct f_Line* line3 = f_lineInit(500/6,0, 500/3, 250);
+    struct Line* line1 = lineInit(500/3,250, 500/6, 250);
+    struct Line* line2 = lineInit(500/6,250, 500/6, 0);
+    struct Line* line3 = lineInit(500/6,0, 500/3, 250);
 
     drawLine_line(line1, rgbaToInt(0,0,255,0));
     drawLine_line(line2, rgbaToInt(0,0,255,0));
     drawLine_line(line3, rgbaToInt(0,0,255,0));
 
-    f_freeLine(line1);
-    f_freeLine(line2);
-    f_freeLine(line3);
+    freeLine(line1);
+    freeLine(line2);
+    freeLine(line3);
 
 
 
-    // Gambar dengan VecLetter (merah); Masih hardcode -> Buat fungsi f_stroke(VecLetter, lineColor) mungkin?;
-    // f_freeVecLetter sudah mem-free lines dan points di dalamnya, walau lines dan points di-malloc dari luar.
+    // Gambar dengan VecLetter (merah); Masih hardcode -> Buat fungsi stroke(VecLetter, lineColor) mungkin?;
+    // freeVecLetter sudah mem-free lines dan points di dalamnya, walau lines dan points di-malloc dari luar.
 
     double posX = 30;
     double posY = 15;
     double width = 210;
     double height = 280;
 
-    struct f_Line** lines = malloc(12 * sizeof(struct f_Line*));
+    struct Line** lines = malloc(12 * sizeof(struct Line*));
 
     // frame luar
-    lines[0] = f_lineInit(posX, posY, posX + width, posY);
-    lines[1] = f_lineInit(posX + width, posY, posX + width, posY + height);
-    lines[2] = f_lineInit(posX + width, posY + height, posX + width - 50, posY + height);
-    lines[3] = f_lineInit(posX + width - 50, posY + height, posX + width - 50, posY + height - 100);
-    lines[4] = f_lineInit(posX + width - 50, posY + height -100, posX + width - 50 - 110, posY + height - 100);
-    lines[5] = f_lineInit(posX + width - 50 - 110, posY + height - 100, posX + width - 50 - 110, posY + height);
-    lines[6] = f_lineInit(posX + width - 50 - 110, posY + height, posX, posY + height);
-    lines[7] = f_lineInit(posX, posY + height, posX, posY);
+    lines[0] = lineInit(posX, posY, posX + width, posY);
+    lines[1] = lineInit(posX + width, posY, posX + width, posY + height);
+    lines[2] = lineInit(posX + width, posY + height, posX + width - 50, posY + height);
+    lines[3] = lineInit(posX + width - 50, posY + height, posX + width - 50, posY + height - 100);
+    lines[4] = lineInit(posX + width - 50, posY + height -100, posX + width - 50 - 110, posY + height - 100);
+    lines[5] = lineInit(posX + width - 50 - 110, posY + height - 100, posX + width - 50 - 110, posY + height);
+    lines[6] = lineInit(posX + width - 50 - 110, posY + height, posX, posY + height);
+    lines[7] = lineInit(posX, posY + height, posX, posY);
 
     // lubang di dalam
-    lines[8] = f_lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
-    lines[9] = f_lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
-    lines[10] = f_lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
-    lines[11] = f_lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);
+    lines[8] = lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
+    lines[9] = lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
+    lines[10] = lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
+    lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);*/
 
 
-    // f_vecLetterInit (posX, posY, width, height, numOfLines, numOfCritPoints, **lines, **critPoints)
-    struct f_VecLetter* letterA = f_vecLetterInit(50, 50, 210, 280, 12, 0, lines, NULL);
+    // vecLetterInit (posX, posY, width, height, numOfLines, numOfCritPoints, **lines, **critPoints)
+    /*struct VecLetter* letterA = vecLetterInit(50, 50, 210, 280, 12, 0, lines, NULL);
 
     for (int i = 0; i < letterA->numOfLines; i++) {
         drawLine_line(letterA->lines[i], rgbaToInt(255,0,0,0));
     }
 
-    f_freeVecLetter(letterA);
+    freeVecLetter(letterA);
 
     munmap(fbp, screensize);
-    close(fbfd);
+    close(fbfd);*/
+    
+    loadLetters("spec.txt");
+    for (int i=0;i<letterCount;i++) {
+        printf("Number of Lines: %d\n",letters[i]->numOfLines);
+        for (int j=0;j<letters[i]->numOfLines;j++) {
+            printf("x1: %lf,y1: %lf,x2: %lf,y2: %lf\n",letters[i]->lines[j]->points[0]->x,letters[i]->lines[j]->points[0]->y,letters[i]->lines[j]->points[1]->x,letters[i]->lines[j]->points[1]->y);
+        }
+        printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
+        for (int k=0;k<letters[i]->numOfCritPoints;k++) {
+            printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
+        }
+    }
     return 0;
 }
 
 
-unsigned int rgbaToInt(int r, int g, int b, int a) {
+/*unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }
 
@@ -315,7 +329,7 @@ void drawLine(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawLine_line(struct f_Line* line, int color) {
+void drawLine_line(struct Line* line, int color) {
     if (abs(line->points[1]->y - line->points[0]->y) < abs(line->points[1]->x - line->points[0]->x)) {
         if (line->points[0]->x > line->points[1]->x) {
             drawLineLow(line->points[1]->x, line->points[1]->y, line->points[0]->x, line->points[0]->y, color);
@@ -357,4 +371,66 @@ void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt) {
     x0 = x0 + dx * t;
     y0 = y0 + dy * t;
     drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,255,0,0), scale);
+}
+*/
+void loadLetters(char* fileName) {
+    FILE * specFile;
+    size_t bufferSize = 80;
+    char *buffer = malloc(bufferSize * sizeof(char));
+    int i = 0, ret = 0, letterWidth, letterLineCount, letterCrit;
+    char letterName,*lineList,*critList,*lineBuff,*critBuff;
+    
+    
+    specFile = fopen(fileName, "r");
+    if (specFile == NULL) {
+        printf("Failed to open specification file\n");
+        exit(0);
+    }
+    ret = fscanf(specFile, "%d %d\n", &letterCount, &letterHeight);
+    if (ret != 2) {
+        printf("Failed to read specification file\n");
+        exit(1);
+    } else {
+        printf("Number of char: %d\n", letterCount);
+        printf("Height of char: %d\n", letterHeight);
+    }
+    
+    letters = malloc(letterCount*sizeof(struct VecLetter*));
+    
+    while ((getline(&buffer, &bufferSize, specFile) != -1) && (i < letterCount)) {
+        lineList = (char*) malloc(256 * sizeof(char));
+        critList = (char*) malloc(256 * sizeof(char));
+        lineBuff = (char*) malloc(18 * sizeof(char));
+        critBuff = (char*) malloc(18 * sizeof(char));
+        ret = 0;
+        ret = sscanf(buffer, "%c|%d|%d|%d|%[^|\n]|%[^\n]s", &letterName, &letterWidth, &letterLineCount, &letterCrit, lineList, critList);
+        if (ret != 6) {
+            printf("Error reading line %d\n",i+2);
+        }
+        else {
+            letters[i] = vecLetterInit(0,0,letterHeight, letterWidth, letterLineCount, letterCrit);
+            lineBuff = strtok(lineList," ");
+            int j = 0;
+            while (lineBuff != NULL) {
+                double x1,y1,x2,y2;
+                sscanf(lineBuff,"<(%lf,%lf),(%lf,%lf)>",&x1,&y1,&x2,&y2);
+                letters[i]->lines[j] = lineInit(x1,y1,x2,y2);
+                lineBuff = strtok(NULL," ");
+                j++;
+            }
+            j = 0;
+            critBuff = strtok(critList," ");
+            while (critBuff != NULL) {
+                double x,y;
+                sscanf(critBuff,"(%lf,%lf)",&x,&y);
+                letters[i]->critPoints[j] = pointInit(x,y);
+                critBuff = strtok(NULL," ");
+                j++;
+            }
+        }
+        i++;
+    }
+    
+    free(buffer);
+    fclose(specFile);
 }

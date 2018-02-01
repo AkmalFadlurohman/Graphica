@@ -8,15 +8,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
-/*#include <linux/fb.h>*/
+#include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
 #define SCALE 2
 
-//struct fb_var_screeninfo vinfo;
-//struct fb_fix_screeninfo finfo;
+struct fb_var_screeninfo vinfo;
+struct fb_fix_screeninfo finfo;
 
 char *fbp = 0;
 int centerX = 0;
@@ -44,7 +44,7 @@ void loadLetters(char* fileName);
 
 int main() {
 
-    /*int fbfd = 0;
+    int fbfd = 0;
     long int screensize = 0;
 
     // Open the file for reading and writing
@@ -81,6 +81,7 @@ int main() {
     system("clear");
 
     // Gambar dengan point (hijau)
+    /*
     struct Point* point1 = pointInit(500/3,250);
     struct Point* point2 = pointInit(500*2/3,250);
     struct Point* point3 = pointInit(500*2/6,100);
@@ -107,7 +108,7 @@ int main() {
     freeLine(line1);
     freeLine(line2);
     freeLine(line3);
-
+    */
 
 
     // Gambar dengan VecLetter (merah); Masih hardcode -> Buat fungsi stroke(VecLetter, lineColor) mungkin?;
@@ -134,37 +135,38 @@ int main() {
     lines[8] = lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
     lines[9] = lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
     lines[10] = lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
-    lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);*/
+    lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);
 
 
-    // vecLetterInit (posX, posY, width, height, numOfLines, numOfCritPoints, **lines, **critPoints)
-    /*struct VecLetter* letterA = vecLetterInit(50, 50, 210, 280, 12, 0, lines, NULL);
-
-    for (int i = 0; i < letterA->numOfLines; i++) {
-        drawLine_line(letterA->lines[i], rgbaToInt(255,0,0,0));
-    }
-
-    freeVecLetter(letterA);
-
-    munmap(fbp, screensize);
-    close(fbfd);*/
     
     loadLetters("spec.txt");
-    for (int i=0;i<letterCount;i++) {
-        printf("Number of Lines: %d\n",letters[i]->numOfLines);
-        for (int j=0;j<letters[i]->numOfLines;j++) {
-            printf("x1: %lf,y1: %lf,x2: %lf,y2: %lf\n",letters[i]->lines[j]->points[0]->x,letters[i]->lines[j]->points[0]->y,letters[i]->lines[j]->points[1]->x,letters[i]->lines[j]->points[1]->y);
-        }
-        printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
-        for (int k=0;k<letters[i]->numOfCritPoints;k++) {
-            printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
-        }
+    for (int i=0; i<vinfo.yres/17; i++) {
+      printf("\n");
     }
+      printf("\n");
+       int f;
+
+    for (int i=0;i<letterCount;i++) {
+       system("clear");
+        for (int i=0; i<10; i++) {
+            printf("\n");
+        }
+       //printf("Number of Lines: %d\n",letters[i]->numOfLines);
+        for (int j=0;j<letters[i]->numOfLines;j++) {
+            drawLine_line(letters[i]->lines[j], rgbaToInt(255,0,0,0));
+        }
+       sleep(1);
+        // printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
+        // for (int k=0;k<letters[i]->numOfCritPoints;k++) {
+        //     printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
+        // }
+    }
+  
     return 0;
 }
 
 
-/*unsigned int rgbaToInt(int r, int g, int b, int a) {
+unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }
 
@@ -373,7 +375,7 @@ void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt) {
     y0 = y0 + dy * t;
     drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,255,0,0), scale);
 }
-*/
+
 void loadLetters(char* fileName) {
     FILE * specFile;
     size_t bufferSize = 80;

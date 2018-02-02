@@ -38,7 +38,7 @@ void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color
 void drawLine(double x0, double y0, double x1, double y2, int color);
 void drawLineWithScale(double x0, double y0, double x1, double y2, int color, int Scale);
 void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
-void drawLine_line(struct Line* line, int color);
+void drawLine_line(struct Line* line, int color, int pengali);
 void loadLetters(char* fileName);
 
 
@@ -114,54 +114,74 @@ int main() {
     // Gambar dengan VecLetter (merah); Masih hardcode -> Buat fungsi stroke(VecLetter, lineColor) mungkin?;
     // freeVecLetter sudah mem-free lines dan points di dalamnya, walau lines dan points di-malloc dari luar.
 
-    double posX = 30;
-    double posY = 15;
-    double width = 210;
-    double height = 280;
+    // double posX = 30;
+    // double posY = 15;
+    // double width = 210;
+    // double height = 280;
 
-    struct Line** lines = malloc(12 * sizeof(struct Line*));
+    // struct Line** lines = malloc(12 * sizeof(struct Line*));
 
-    // frame luar
-    lines[0] = lineInit(posX, posY, posX + width, posY);
-    lines[1] = lineInit(posX + width, posY, posX + width, posY + height);
-    lines[2] = lineInit(posX + width, posY + height, posX + width - 50, posY + height);
-    lines[3] = lineInit(posX + width - 50, posY + height, posX + width - 50, posY + height - 100);
-    lines[4] = lineInit(posX + width - 50, posY + height -100, posX + width - 50 - 110, posY + height - 100);
-    lines[5] = lineInit(posX + width - 50 - 110, posY + height - 100, posX + width - 50 - 110, posY + height);
-    lines[6] = lineInit(posX + width - 50 - 110, posY + height, posX, posY + height);
-    lines[7] = lineInit(posX, posY + height, posX, posY);
+    // // frame luar
+    // lines[0] = lineInit(posX, posY, posX + width, posY);
+    // lines[1] = lineInit(posX + width, posY, posX + width, posY + height);
+    // lines[2] = lineInit(posX + width, posY + height, posX + width - 50, posY + height);
+    // lines[3] = lineInit(posX + width - 50, posY + height, posX + width - 50, posY + height - 100);
+    // lines[4] = lineInit(posX + width - 50, posY + height -100, posX + width - 50 - 110, posY + height - 100);
+    // lines[5] = lineInit(posX + width - 50 - 110, posY + height - 100, posX + width - 50 - 110, posY + height);
+    // lines[6] = lineInit(posX + width - 50 - 110, posY + height, posX, posY + height);
+    // lines[7] = lineInit(posX, posY + height, posX, posY);
 
-    // lubang di dalam
-    lines[8] = lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
-    lines[9] = lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
-    lines[10] = lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
-    lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);
+    // // lubang di dalam
+    // lines[8] = lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
+    // lines[9] = lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
+    // lines[10] = lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
+    // lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);
 
 
     
     loadLetters("spec.txt");
+    
+    char input[100];
+    printf("%s: ", "Masukkan input");
+    scanf("%99[0-9a-zA-Z ]", input);
+
+    for(int i = 0; input[i]; i++) {
+        input[i] = tolower(input[i]);
+    }
+
     for (int i=0; i<vinfo.yres/17; i++) {
       printf("\n");
     }
-      printf("\n");
-       int f;
+    printf("\n");
+    int f;
 
-    for (int i=0;i<letterCount;i++) {
-       system("clear");
-        for (int i=0; i<10; i++) {
-            printf("\n");
-        }
-       //printf("Number of Lines: %d\n",letters[i]->numOfLines);
-        for (int j=0;j<letters[i]->numOfLines;j++) {
-            drawLine_line(letters[i]->lines[j], rgbaToInt(255,0,0,0));
-        }
-       sleep(1);
-        // printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
-        // for (int k=0;k<letters[i]->numOfCritPoints;k++) {
-        //     printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
-        // }
+    int pengali = -20;
+    system("clear");
+    for (int i=0;i<strlen(input);i++) {
+      // for (int i=0; i<10; i++) {
+          // printf("\n");
+      // }
+      // printf("Number of Lines: %d\n",letters[i]->numOfLines);
+      pengali += 25;
+      if (input[i] == ' ') continue;
+      if ((input[i] - 97) > 25 || (input[i] - 97 < 0)) {
+          pengali -= 25;
+          continue;
+      }
+      for (int j=0;j<letters[input[i]-97]->numOfLines;j++) {
+            drawLine_line(letters[input[i]-97]->lines[j], rgbaToInt(255,0,0,0), pengali);
+      }   
+      usleep(50000);
+      // printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
+      // for (int k=0;k<letters[i]->numOfCritPoints;k++) {
+      //     printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
+      // }
     }
   
+    for (int i=0; i<vinfo.yres/17; i++) {
+      printf("\n");
+    }
+
     return 0;
 }
 
@@ -332,18 +352,18 @@ void drawLine(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawLine_line(struct Line* line, int color) {
+void drawLine_line(struct Line* line, int color, int pengali) {
     if (abs(line->points[1]->y - line->points[0]->y) < abs(line->points[1]->x - line->points[0]->x)) {
         if (line->points[0]->x > line->points[1]->x) {
-            drawLineLow(line->points[1]->x, line->points[1]->y, line->points[0]->x, line->points[0]->y, color);
+            drawLineLow(line->points[1]->x + pengali, line->points[1]->y, line->points[0]->x + pengali, line->points[0]->y, color);
         } else {
-            drawLineLow(line->points[0]->x, line->points[0]->y, line->points[1]->x, line->points[1]->y, color);
+            drawLineLow(line->points[0]->x + pengali, line->points[0]->y, line->points[1]->x + pengali, line->points[1]->y, color);
         }
     } else {
         if (line->points[0]->y > line->points[1]->y) {
-            drawLineHigh(line->points[1]->x, line->points[1]->y, line->points[0]->x, line->points[0]->y, color);
+            drawLineHigh(line->points[1]->x + pengali, line->points[1]->y, line->points[0]->x + pengali, line->points[0]->y, color);
         } else {
-            drawLineHigh(line->points[0]->x, line->points[0]->y, line->points[1]->x, line->points[1]->y, color);
+            drawLineHigh(line->points[0]->x + pengali, line->points[0]->y, line->points[1]->x + pengali, line->points[1]->y, color);
         }
     }
 }

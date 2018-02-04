@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 2
+#define SCALE 8
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;

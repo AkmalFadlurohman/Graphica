@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 2
+#define SCALE 10
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -31,6 +31,7 @@ void drawPixelWithScale(int x, int y, unsigned int color, int scale);
 
 int isValidPoint(int x, int y);
 int isValidPointScale(int x, int y, int scale);
+unsigned int getPixelColor(int x, int y);
 void drawLineLow(double x0, double y0, double x1, double y1, int color);
 void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color, int scale);
 void drawLineHigh(double x0, double y0, double x1, double y1, int color);
@@ -40,9 +41,10 @@ void drawLineWithScale(double x0, double y0, double x1, double y2, int color, in
 void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
 void drawLine_line(struct Line* line, int color, int pengali);
 void loadLetters(char* fileName);
+void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int pengali);
 
-
-int main() {
+    int main()
+{
 
     int fbfd = 0;
     long int screensize = 0;
@@ -142,6 +144,7 @@ int main() {
     loadLetters("spec.txt");
     
     char input[100];
+    // printf("cp A = %f, %f \n", letters[0]->critPoints[1]->x, letters[0]->critPoints[1]->y);
     printf("%s: ", "Masukkan input");
     scanf("%99[0-9a-zA-Z ]", input);
 
@@ -157,6 +160,7 @@ int main() {
 
     int pengali = -20;
     system("clear");
+    
     for (int i=0;i<strlen(input);i++) {
       // for (int i=0; i<10; i++) {
           // printf("\n");
@@ -170,24 +174,47 @@ int main() {
       }
       for (int j=0;j<letters[input[i]-97]->numOfLines;j++) {
             drawLine_line(letters[input[i]-97]->lines[j], rgbaToInt(255,0,0,0), pengali);
-      }   
+      }
+
+      unsigned int fillColor = rgbaToInt(150, 150, 255, 0);
+      unsigned int boundaryColor = rgbaToInt(255,0,0,0);
+    //   unsigned int fillColor = 0x00ffffff;
+    //   unsigned int boundaryColor = 0x00ff0000;
+        
+      fillLetter(letters[input[i] - 97], fillColor, boundaryColor, pengali);
+
       usleep(50000);
       // printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
       // for (int k=0;k<letters[i]->numOfCritPoints;k++) {
       //     printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
       // }
     }
-  
+    
     for (int i=0; i<vinfo.yres/17; i++) {
       printf("\n");
     }
-
+    
+    // printf("%d\n", rgbaToInt(255, 255, 255, 0));
     return 0;
 }
 
 
 unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
+}
+
+unsigned int getPixelColor(int x, int y) {
+    long int location;
+    x = x * SCALE;
+    y = y * SCALE;
+    location = (x + vinfo.xoffset) * (vinfo.bits_per_pixel / 8) + (y + vinfo.yoffset) * finfo.line_length;
+    unsigned int blue = *(fbp + location);
+    unsigned int green = *(fbp + location + 1);
+    unsigned int red = *(fbp + location + 2) ^ 0xffffff00;
+    unsigned int alpha = *(fbp + location + 3);
+
+    
+    return (alpha << 24 | red << 16 | green << 8 | blue);
 }
 
 void drawPixel(int x, int y, unsigned int color) {
@@ -457,3 +484,55 @@ void loadLetters(char* fileName) {
     free(buffer);
     fclose(specFile);
 }
+
+void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int pengali)
+{
+    int isFilling = -1;
+    int critExist = 0;
+    if (vecletter->critPoints != NULL) {
+        critExist = 1;
+    }
+    int critCounter = 0;
+    
+    // int isInside = 0;
+
+    for (int j = 0; j <= vecletter->height; j++) {
+        isFilling = -1;
+        for (int i= pengali; i <= vecletter->width + pengali; i++) {
+        {
+            
+            //crit point
+            if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x+pengali && j == vecletter->critPoints[critCounter]->y)
+            {
+                critCounter++;
+                continue;
+            }
+
+            if (getPixelColor(i, j) == boundaryColor)
+            {
+                while(getPixelColor(i, j) == boundaryColor && i <= vecletter->width + pengali) {
+                    i++;
+                }
+
+                if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x + pengali && j == vecletter->critPoints[critCounter]->y)
+                {
+                    critCounter++;
+                    // continue;
+                } else {
+                    isFilling *= -1;
+                }
+            }
+            if (i <= vecletter->width + pengali) {
+                if (isFilling > 0)
+                {
+                    drawPixel(i, j, color);
+                }
+                else
+                {
+                    drawPixel(i, j, rgbaToInt(255, 255, 255, 0));
+                }
+            }
+            
+        }
+    }
+}}

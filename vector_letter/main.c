@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 10
+#define SCALE 2
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -176,8 +176,8 @@ void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int bo
             drawLine_line(letters[input[i]-97]->lines[j], rgbaToInt(255,0,0,0), pengali);
       }
 
-      unsigned int fillColor = rgbaToInt(150, 150, 255, 0);
-      unsigned int boundaryColor = rgbaToInt(255,0,0,0);
+      unsigned int fillColor = rgbaToInt(255, 0, 0, 0);
+      unsigned int boundaryColor = rgbaToInt(255, 0, 0, 0);
     //   unsigned int fillColor = 0x00ffffff;
     //   unsigned int boundaryColor = 0x00ff0000;
         
@@ -526,10 +526,6 @@ void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int bo
                 if (isFilling > 0)
                 {
                     drawPixel(i, j, color);
-                }
-                else
-                {
-                    drawPixel(i, j, rgbaToInt(255, 255, 255, 0));
                 }
             }
             

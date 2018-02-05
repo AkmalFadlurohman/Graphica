@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 3
+#define SCALE 5
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -24,6 +24,10 @@ int fullY = 0;
 
 int letterCount, letterHeight;
 struct VecLetter** letters;
+int COLOR = 0;
+int BORDER_COLOR = 0;
+int MARGIN_VERTICAL = 3;
+int MARGIN_HORIZONTAL = 3;
 
 unsigned int rgbaToInt(int r, int g, int b, int a);
 void drawPixel(int x, int y, unsigned int color);
@@ -41,6 +45,7 @@ void drawLineWithScale(double x0, double y0, double x1, double y2, int color, in
 void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
 void drawLine_line(struct Line* line, int color, int offsetX, int offsetY);
 void loadLetters(char* fileName);
+int drawLetters(char c, int* x, int* y);
 void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY);
 
 int main() {
@@ -88,7 +93,7 @@ int main() {
     scanf("%99[0-9a-zA-Z ]", input);
 
     for(int i = 0; input[i]; i++) {
-        input[i] = tolower(input[i]);
+        input[i] = toupper(input[i]);
     }
 
     for (int i=0; i<vinfo.yres/17; i++) {
@@ -97,33 +102,19 @@ int main() {
     printf("\n");
     int f;
 
-    int offsetX = -20;
-    int offsetY = 0;
+    int offsetX = MARGIN_HORIZONTAL;
+    int offsetY = MARGIN_VERTICAL;
     system("clear");
+
+    COLOR = rgbaToInt(255, 225, 0, 0);
+    BORDER_COLOR = rgbaToInt(255, 0, 0, 0);
     
     for (int i=0;i<strlen(input);i++) {
-        offsetX += 25;
-        if (input[i] == ' ') continue;
-        if ((input[i] - 97) > 25 || (input[i] - 97 < 0)) {
-            offsetX -= 25;
+        if (input[i] == ' ') {
+            offsetX += MARGIN_HORIZONTAL*4;
             continue;
         }
-
-        if (offsetX + 25 > vinfo.xres / SCALE) {
-            offsetX = 5;
-            offsetY += 35;
-        }
-
-        for (int j = 0; j < letters[input[i] - 97]->numOfLines; j++) {
-            drawLine_line(letters[input[i] - 97]->lines[j], rgbaToInt(255, 0, 0, 0), offsetX, offsetY);
-        }
-
-        unsigned int fillColor = rgbaToInt(255, 225, 0, 0);
-        unsigned int boundaryColor = rgbaToInt(255, 0, 0, 0);
-            
-        // fillLetter(letters[input[i] - 97], fillColor, boundaryColor, offsetX, offsetY);
-
-    //   usleep(50000);
+        drawLetters(input[i], &offsetX, &offsetY);
     }
     
     for (int i=0; i<vinfo.yres/17; i++) {
@@ -207,7 +198,7 @@ void drawLineLow(double x0, double y0, double x1, double y1, int color) {
     D = 2 * dy - dx;
     int y = y0;
 
-    for (double x = x0; x <= x1; x++) {
+    for (double x = x0; x < x1; x++) {
         if (isValidPoint(x, y) == 0)
             return;
         drawPixel(x, y, color);
@@ -232,7 +223,7 @@ void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color,
     D = 2 * dy - dx;
     int y = y0;
 
-    for (double x = x0; x <= x1; x++) {
+    for (double x = x0; x < x1; x++) {
         if (isValidPointScale(x, y, scale) == 0)
             return;
         drawPixelWithScale(x, y, color, scale);
@@ -258,7 +249,7 @@ void drawLineHigh(double x0, double y0, double x1, double y1, int color) {
     D = 2 * dx - dy;
     int x = x0;
 
-    for (double y = y0; y <= y1; y++) {
+    for (double y = y0; y < y1; y++) {
         if (isValidPoint(x, y) == 0)
             return;
         drawPixel(x, y, color);
@@ -285,7 +276,7 @@ void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color
     D = 2 * dx - dy;
     int x = x0;
 
-    for (double y = y0; y <= y1; y++) {
+    for (double y = y0; y < y1; y++) {
         if (isValidPointScale(x, y, scale) == 0)
             return;
         drawPixelWithScale(x, y, color, scale);
@@ -419,6 +410,38 @@ void loadLetters(char* fileName) {
     fclose(specFile);
 }
 
+int drawLetters(char c, int* x, int* y) {
+    // Find letter index
+    int i = 0; int found = 0, idx = 0; 
+    while (i < letterCount && found == 0) {
+        if (letters[i]->name == c) {
+            idx = i;
+            found = 1;
+        }
+        i++;
+    }
+
+    if (found == 0) {
+        return 0;
+    }
+
+    if (*x + MARGIN_HORIZONTAL + letters[idx]->width >= vinfo.xres / SCALE) {
+        *x = MARGIN_HORIZONTAL;
+        *y += letterHeight + MARGIN_VERTICAL;
+    }
+    *x += MARGIN_HORIZONTAL;
+
+    // Draw letter border
+    for (int j = 0; j < letters[idx]->numOfLines; j++) {
+        drawLine_line(letters[idx]->lines[j], rgbaToInt(255, 0, 0, 0), *x, *y);
+    }
+
+    fillLetter(letters[idx], COLOR, BORDER_COLOR, *x, *y);
+
+    *x += letters[idx]->width;
+    return letters[idx]->width;    
+};
+
 void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY) {
     int isFilling = -1;
     int critExist = 0;
@@ -439,6 +462,7 @@ void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int bo
             }
 
             if (getPixelColor(i, j) == boundaryColor) {
+                int initI = i;
                 while(getPixelColor(i, j) == boundaryColor && i <= vecletter->width + offsetX) {
                     i++;
                 }

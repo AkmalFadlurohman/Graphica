@@ -142,7 +142,8 @@ struct VecLetter* vecLetterInit(char name, int x, int y, int h, int w, int l, in
         letter->critPoints = NULL;
     }
     
-    letter->posX = x;
+    letter->name = name;
+	letter->posX = x;
     letter->posY = y;
     letter->height = h;
     letter->width = w;

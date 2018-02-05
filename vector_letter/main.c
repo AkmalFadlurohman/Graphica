@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 8
+#define SCALE 3
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -43,8 +43,7 @@ void drawLine_line(struct Line* line, int color, int offsetX, int offsetY);
 void loadLetters(char* fileName);
 void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY);
 
-    int main()
-{
+int main() {
 
     int fbfd = 0;
     long int screensize = 0;
@@ -125,14 +124,13 @@ void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int bo
         
       fillLetter(letters[input[i] - 97], fillColor, boundaryColor, offsetX, offsetY);
 
-      usleep(50000);
+    //   usleep(50000);
     }
     
     for (int i=0; i<vinfo.yres/17; i++) {
       printf("\n");
     }
     
-    // printf("%d\n", rgbaToInt(255, 255, 255, 0));
     return 0;
 }
 
@@ -394,8 +392,7 @@ void loadLetters(char* fileName) {
         ret = sscanf(buffer, "%c|%d|%d|%d|%[^|\n]|%[^\n]s", &letterName, &letterWidth, &letterLineCount, &letterCrit, lineList, critList);
         if (ret != 6) {
             printf("Error reading line %d\n",i+2);
-        }
-        else {
+        } else {
             letters[i] = vecLetterInit(0,0,letterHeight, letterWidth, letterLineCount, letterCrit);
             lineBuff = strtok(lineList," ");
             int j = 0;
@@ -423,8 +420,7 @@ void loadLetters(char* fileName) {
     fclose(specFile);
 }
 
-void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY)
-{
+void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY) {
     int isFilling = -1;
     int critExist = 0;
     if (vecletter->critPoints != NULL) {
@@ -437,23 +433,18 @@ void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int bo
     for (int j = offsetY; j <= vecletter->height + offsetY; j++) {
         isFilling = -1;
         for (int i= offsetX; i <= vecletter->width + offsetX; i++) {
-        {
-            
             //crit point
-            if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x+offsetX && j == vecletter->critPoints[critCounter]->y+offsetY)
-            {
+            if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x+offsetX && j == vecletter->critPoints[critCounter]->y+offsetY) {
                 critCounter++;
                 continue;
             }
 
-            if (getPixelColor(i, j) == boundaryColor)
-            {
+            if (getPixelColor(i, j) == boundaryColor) {
                 while(getPixelColor(i, j) == boundaryColor && i <= vecletter->width + offsetX) {
                     i++;
                 }
 
-                if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x + offsetX && j == vecletter->critPoints[critCounter]->y + +offsetY)
-                {
+                if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x + offsetX && j == vecletter->critPoints[critCounter]->y + +offsetY) {
                     critCounter++;
                     // continue;
                 } else {
@@ -461,12 +452,11 @@ void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int bo
                 }
             }
             if (i <= vecletter->width + offsetX) {
-                if (isFilling > 0)
-                {
+                if (isFilling > 0) {
                     drawPixel(i, j, color);
                 }
             }
             
         }
     }
-}}
+}

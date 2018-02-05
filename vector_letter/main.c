@@ -102,27 +102,26 @@ int main() {
     system("clear");
     
     for (int i=0;i<strlen(input);i++) {
-      offsetX += 25;
-      if (input[i] == ' ') continue;
-      if ((input[i] - 97) > 25 || (input[i] - 97 < 0)) {
-          offsetX -= 25;
-          continue;
-      }
+        offsetX += 25;
+        if (input[i] == ' ') continue;
+        if ((input[i] - 97) > 25 || (input[i] - 97 < 0)) {
+            offsetX -= 25;
+            continue;
+        }
 
-      if (offsetX + 25 > vinfo.xres / SCALE) {
-          offsetX = 5;
-          offsetY += 35;
-      }
+        if (offsetX + 25 > vinfo.xres / SCALE) {
+            offsetX = 5;
+            offsetY += 35;
+        }
 
-          for (int j = 0; j < letters[input[i] - 97]->numOfLines; j++)
-          {
-              drawLine_line(letters[input[i] - 97]->lines[j], rgbaToInt(255, 0, 0, 0), offsetX, offsetY);
-          }
+        for (int j = 0; j < letters[input[i] - 97]->numOfLines; j++) {
+            drawLine_line(letters[input[i] - 97]->lines[j], rgbaToInt(255, 0, 0, 0), offsetX, offsetY);
+        }
 
-      unsigned int fillColor = rgbaToInt(255, 225, 0, 0);
-      unsigned int boundaryColor = rgbaToInt(255, 0, 0, 0);
-        
-      fillLetter(letters[input[i] - 97], fillColor, boundaryColor, offsetX, offsetY);
+        unsigned int fillColor = rgbaToInt(255, 225, 0, 0);
+        unsigned int boundaryColor = rgbaToInt(255, 0, 0, 0);
+            
+        // fillLetter(letters[input[i] - 97], fillColor, boundaryColor, offsetX, offsetY);
 
     //   usleep(50000);
     }
@@ -208,7 +207,7 @@ void drawLineLow(double x0, double y0, double x1, double y1, int color) {
     D = 2 * dy - dx;
     int y = y0;
 
-    for (double x = x0; x < x1; x++) {
+    for (double x = x0; x <= x1; x++) {
         if (isValidPoint(x, y) == 0)
             return;
         drawPixel(x, y, color);
@@ -233,7 +232,7 @@ void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color,
     D = 2 * dy - dx;
     int y = y0;
 
-    for (double x = x0; x < x1; x++) {
+    for (double x = x0; x <= x1; x++) {
         if (isValidPointScale(x, y, scale) == 0)
             return;
         drawPixelWithScale(x, y, color, scale);
@@ -259,7 +258,7 @@ void drawLineHigh(double x0, double y0, double x1, double y1, int color) {
     D = 2 * dx - dy;
     int x = x0;
 
-    for (double y = y0; y < y1; y++) {
+    for (double y = y0; y <= y1; y++) {
         if (isValidPoint(x, y) == 0)
             return;
         drawPixel(x, y, color);
@@ -286,7 +285,7 @@ void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color
     D = 2 * dx - dy;
     int x = x0;
 
-    for (double y = y0; y < y1; y++) {
+    for (double y = y0; y <= y1; y++) {
         if (isValidPointScale(x, y, scale) == 0)
             return;
         drawPixelWithScale(x, y, color, scale);
@@ -393,7 +392,7 @@ void loadLetters(char* fileName) {
         if (ret != 6) {
             printf("Error reading line %d\n",i+2);
         } else {
-            letters[i] = vecLetterInit(0,0,letterHeight, letterWidth, letterLineCount, letterCrit);
+            letters[i] = vecLetterInit(letterName, 0, 0, letterHeight, letterWidth, letterLineCount, letterCrit);
             lineBuff = strtok(lineList," ");
             int j = 0;
             while (lineBuff != NULL) {

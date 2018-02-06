@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 
-#define SCALE 2
+#define SCALE 5
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -24,6 +24,10 @@ int fullY = 0;
 
 int letterCount, letterHeight;
 struct VecLetter** letters;
+int COLOR = 0;
+int BORDER_COLOR = 0;
+int MARGIN_VERTICAL = 3;
+int MARGIN_HORIZONTAL = 3;
 
 unsigned int rgbaToInt(int r, int g, int b, int a);
 void drawPixel(int x, int y, unsigned int color);
@@ -31,6 +35,7 @@ void drawPixelWithScale(int x, int y, unsigned int color, int scale);
 
 int isValidPoint(int x, int y);
 int isValidPointScale(int x, int y, int scale);
+unsigned int getPixelColor(int x, int y);
 void drawLineLow(double x0, double y0, double x1, double y1, int color);
 void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color, int scale);
 void drawLineHigh(double x0, double y0, double x1, double y1, int color);
@@ -38,9 +43,10 @@ void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color
 void drawLine(double x0, double y0, double x1, double y2, int color);
 void drawLineWithScale(double x0, double y0, double x1, double y2, int color, int Scale);
 void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
-void drawLine_line(struct Line* line, int color, int pengali);
+void drawLine_line(struct Line* line, int color, int offsetX, int offsetY);
 void loadLetters(char* fileName);
-
+int drawLetters(char c, int* x, int* y);
+void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY);
 
 int main() {
 
@@ -79,65 +85,6 @@ int main() {
 
     //Render and start animation
     system("clear");
-
-    // Gambar dengan point (hijau)
-    /*
-    struct Point* point1 = pointInit(500/3,250);
-    struct Point* point2 = pointInit(500*2/3,250);
-    struct Point* point3 = pointInit(500*2/6,100);
-
-    drawLine(point1->x, point1->y, point2->x, point2->y, rgbaToInt(0, 255,0, 0));    
-    drawLine(point2->x, point2->y, point3->x, point3->y, rgbaToInt(0, 255,0, 0));
-    drawLine(point1->x, point1->y, point3->x, point3->y, rgbaToInt(0, 255,0, 0));    
-
-    freePoint(point1);
-    freePoint(point2);
-    freePoint(point3);
-
-
-
-    // Gambar dengan line (biru)
-    struct Line* line1 = lineInit(500/3,250, 500/6, 250);
-    struct Line* line2 = lineInit(500/6,250, 500/6, 0);
-    struct Line* line3 = lineInit(500/6,0, 500/3, 250);
-
-    drawLine_line(line1, rgbaToInt(0,0,255,0));
-    drawLine_line(line2, rgbaToInt(0,0,255,0));
-    drawLine_line(line3, rgbaToInt(0,0,255,0));
-
-    freeLine(line1);
-    freeLine(line2);
-    freeLine(line3);
-    */
-
-
-    // Gambar dengan VecLetter (merah); Masih hardcode -> Buat fungsi stroke(VecLetter, lineColor) mungkin?;
-    // freeVecLetter sudah mem-free lines dan points di dalamnya, walau lines dan points di-malloc dari luar.
-
-    // double posX = 30;
-    // double posY = 15;
-    // double width = 210;
-    // double height = 280;
-
-    // struct Line** lines = malloc(12 * sizeof(struct Line*));
-
-    // // frame luar
-    // lines[0] = lineInit(posX, posY, posX + width, posY);
-    // lines[1] = lineInit(posX + width, posY, posX + width, posY + height);
-    // lines[2] = lineInit(posX + width, posY + height, posX + width - 50, posY + height);
-    // lines[3] = lineInit(posX + width - 50, posY + height, posX + width - 50, posY + height - 100);
-    // lines[4] = lineInit(posX + width - 50, posY + height -100, posX + width - 50 - 110, posY + height - 100);
-    // lines[5] = lineInit(posX + width - 50 - 110, posY + height - 100, posX + width - 50 - 110, posY + height);
-    // lines[6] = lineInit(posX + width - 50 - 110, posY + height, posX, posY + height);
-    // lines[7] = lineInit(posX, posY + height, posX, posY);
-
-    // // lubang di dalam
-    // lines[8] = lineInit(posX + 50, posY + 50, posX + 50 + 110, posY + 50);
-    // lines[9] = lineInit(posX + 50 + 110, posY + 50, posX + 50 + 110, posY + 50 + 65);
-    // lines[10] = lineInit(posX + 50 + 110, posY + 50 + 65, posX + 50, posY + 50 + 65);
-    // lines[11] = lineInit(posX + 50, posY + 50 + 65, posX + 50, posY + 50);
-
-
     
     loadLetters("spec.txt");
     
@@ -146,7 +93,7 @@ int main() {
     scanf("%99[0-9a-zA-Z ]", input);
 
     for(int i = 0; input[i]; i++) {
-        input[i] = tolower(input[i]);
+        input[i] = toupper(input[i]);
     }
 
     for (int i=0; i<vinfo.yres/17; i++) {
@@ -155,39 +102,45 @@ int main() {
     printf("\n");
     int f;
 
-    int pengali = -20;
+    int offsetX = MARGIN_HORIZONTAL;
+    int offsetY = MARGIN_VERTICAL;
     system("clear");
+
+    COLOR = rgbaToInt(255, 225, 0, 0);
+    BORDER_COLOR = rgbaToInt(255, 0, 0, 0);
+    
     for (int i=0;i<strlen(input);i++) {
-      // for (int i=0; i<10; i++) {
-          // printf("\n");
-      // }
-      // printf("Number of Lines: %d\n",letters[i]->numOfLines);
-      pengali += 25;
-      if (input[i] == ' ') continue;
-      if ((input[i] - 97) > 25 || (input[i] - 97 < 0)) {
-          pengali -= 25;
-          continue;
-      }
-      for (int j=0;j<letters[input[i]-97]->numOfLines;j++) {
-            drawLine_line(letters[input[i]-97]->lines[j], rgbaToInt(255,0,0,0), pengali);
-      }   
-      usleep(50000);
-      // printf("Number of Critical Points: %d\n",letters[i]->numOfCritPoints);
-      // for (int k=0;k<letters[i]->numOfCritPoints;k++) {
-      //     printf("x: %lf,y: %lf\n",letters[i]->critPoints[k]->x,letters[i]->critPoints[k]->y);
-      // }
+        if (input[i] == ' ') {
+            offsetX += MARGIN_HORIZONTAL*4;
+            continue;
+        }
+        drawLetters(input[i], &offsetX, &offsetY);
     }
-  
+    
     for (int i=0; i<vinfo.yres/17; i++) {
       printf("\n");
     }
-
+    
     return 0;
 }
 
 
 unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
+}
+
+unsigned int getPixelColor(int x, int y) {
+    long int location;
+    x = x * SCALE;
+    y = y * SCALE;
+    location = (x + vinfo.xoffset) * (vinfo.bits_per_pixel / 8) + (y + vinfo.yoffset) * finfo.line_length;
+    unsigned int blue = *(fbp + location);
+    unsigned int green = *(fbp + location + 1);
+    unsigned int red = *(fbp + location + 2) ^ 0xffffff00;
+    unsigned int alpha = *(fbp + location + 3);
+
+    
+    return (alpha << 24 | red << 16 | green << 8 | blue);
 }
 
 void drawPixel(int x, int y, unsigned int color) {
@@ -352,18 +305,18 @@ void drawLine(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawLine_line(struct Line* line, int color, int pengali) {
+void drawLine_line(struct Line* line, int color, int offsetX, int offsetY) {
     if (abs(line->points[1]->y - line->points[0]->y) < abs(line->points[1]->x - line->points[0]->x)) {
         if (line->points[0]->x > line->points[1]->x) {
-            drawLineLow(line->points[1]->x + pengali, line->points[1]->y, line->points[0]->x + pengali, line->points[0]->y, color);
+            drawLineLow(line->points[1]->x + offsetX, line->points[1]->y + offsetY, line->points[0]->x + offsetX, line->points[0]->y + offsetY, color);
         } else {
-            drawLineLow(line->points[0]->x + pengali, line->points[0]->y, line->points[1]->x + pengali, line->points[1]->y, color);
+            drawLineLow(line->points[0]->x + offsetX, line->points[0]->y + offsetY, line->points[1]->x + offsetX, line->points[1]->y + offsetY, color);
         }
     } else {
         if (line->points[0]->y > line->points[1]->y) {
-            drawLineHigh(line->points[1]->x + pengali, line->points[1]->y, line->points[0]->x + pengali, line->points[0]->y, color);
+            drawLineHigh(line->points[1]->x + offsetX, line->points[1]->y + offsetY, line->points[0]->x + offsetX, line->points[0]->y + offsetY, color);
         } else {
-            drawLineHigh(line->points[0]->x + pengali, line->points[0]->y, line->points[1]->x + pengali, line->points[1]->y, color);
+            drawLineHigh(line->points[0]->x + offsetX, line->points[0]->y + offsetY, line->points[1]->x + offsetX, line->points[1]->y + offsetY, color);
         }
     }
 }
@@ -429,9 +382,8 @@ void loadLetters(char* fileName) {
         ret = sscanf(buffer, "%c|%d|%d|%d|%[^|\n]|%[^\n]s", &letterName, &letterWidth, &letterLineCount, &letterCrit, lineList, critList);
         if (ret != 6) {
             printf("Error reading line %d\n",i+2);
-        }
-        else {
-            letters[i] = vecLetterInit(0,0,letterHeight, letterWidth, letterLineCount, letterCrit);
+        } else {
+            letters[i] = vecLetterInit(letterName, 0, 0, letterHeight, letterWidth, letterLineCount, letterCrit);
             lineBuff = strtok(lineList," ");
             int j = 0;
             while (lineBuff != NULL) {
@@ -456,4 +408,78 @@ void loadLetters(char* fileName) {
     
     free(buffer);
     fclose(specFile);
+}
+
+int drawLetters(char c, int* x, int* y) {
+    // Find letter index
+    int i = 0; int found = 0, idx = 0; 
+    while (i < letterCount && found == 0) {
+        if (letters[i]->name == c) {
+            idx = i;
+            found = 1;
+        }
+        i++;
+    }
+
+    if (found == 0) {
+        return 0;
+    }
+
+    if (*x + MARGIN_HORIZONTAL + letters[idx]->width >= vinfo.xres / SCALE) {
+        *x = MARGIN_HORIZONTAL;
+        *y += letterHeight + MARGIN_VERTICAL;
+    }
+    *x += MARGIN_HORIZONTAL;
+
+    // Draw letter border
+    for (int j = 0; j < letters[idx]->numOfLines; j++) {
+        drawLine_line(letters[idx]->lines[j], rgbaToInt(255, 0, 0, 0), *x, *y);
+    }
+
+    fillLetter(letters[idx], COLOR, BORDER_COLOR, *x, *y);
+
+    *x += letters[idx]->width;
+    return letters[idx]->width;    
+};
+
+void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY) {
+    int isFilling = -1;
+    int critExist = 0;
+    if (vecletter->critPoints != NULL) {
+        critExist = 1;
+    }
+    int critCounter = 0;
+    
+    // int isInside = 0;
+
+    for (int j = offsetY; j <= vecletter->height + offsetY; j++) {
+        isFilling = -1;
+        for (int i= offsetX; i <= vecletter->width + offsetX; i++) {
+            //crit point
+            if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x+offsetX && j == vecletter->critPoints[critCounter]->y+offsetY) {
+                critCounter++;
+                continue;
+            }
+
+            if (getPixelColor(i, j) == boundaryColor) {
+                int initI = i;
+                while(getPixelColor(i, j) == boundaryColor && i <= vecletter->width + offsetX) {
+                    i++;
+                }
+
+                if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x + offsetX && j == vecletter->critPoints[critCounter]->y + +offsetY) {
+                    critCounter++;
+                    // continue;
+                } else {
+                    isFilling *= -1;
+                }
+            }
+            if (i <= vecletter->width + offsetX) {
+                if (isFilling > 0) {
+                    drawPixel(i, j, color);
+                }
+            }
+            
+        }
+    }
 }

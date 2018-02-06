@@ -15,6 +15,8 @@ struct Line {
 };
 
 struct VecLetter {
+	char name;
+
 	int posX;
 	int posY;
 	int height;
@@ -30,7 +32,7 @@ struct VecLetter {
 struct Point* pointInit(double x, double y);
 struct Line* lineInit(double x1, double y1, double x2, double y2);
 //struct VecLetter* vecLetterInit(int x, int y, int w, int h, int l, int c, struct Line** arrLines, struct Point** arrPoints);
-struct VecLetter* vecLetterInit(int x, int y, int w, int h, int l, int c);
+struct VecLetter* vecLetterInit(char name, int x, int y, int w, int h, int l, int c);
 void freePoint(struct Point* point);
 void freeLine(struct Line* line);
 void freeVecLetter(struct VecLetter* letter);

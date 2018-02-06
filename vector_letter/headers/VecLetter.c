@@ -106,7 +106,7 @@ struct Line* lineInit(double x1, double y1, double x2, double y2) {
 	return letter;
 }*/
 
-struct VecLetter* vecLetterInit(int x, int y, int h, int w, int l, int c) {
+struct VecLetter* vecLetterInit(char name, int x, int y, int h, int w, int l, int c) {
     struct VecLetter* letter = malloc(sizeof(struct VecLetter));
     
     if (letter == NULL) {
@@ -142,7 +142,8 @@ struct VecLetter* vecLetterInit(int x, int y, int h, int w, int l, int c) {
         letter->critPoints = NULL;
     }
     
-    letter->posX = x;
+    letter->name = name;
+	letter->posX = x;
     letter->posY = y;
     letter->height = h;
     letter->width = w;

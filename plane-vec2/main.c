@@ -12,8 +12,8 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
-
-#define SCALE 5
+#include <math.h>
+#define SCALE 1
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -24,27 +24,24 @@ int fullY = 0;
 
 int letterCount, letterHeight;
 struct VecLetter** letters;
-int COLOR = 0;
-int MARGIN_VERTICAL = 3;
-int MARGIN_HORIZONTAL = 3;
 
 unsigned int rgbaToInt(int r, int g, int b, int a);
 void drawPixel(int x, int y, unsigned int color);
-void drawPixelWithScale(int x, int y, unsigned int color, int scale);
-
+//void drawPixelWithScale(int x, int y, unsigned int color, int scale);
+void clear(int color);
 int isValidPoint(int x, int y);
-int isValidPointScale(int x, int y, int scale);
+//int isValidPointScale(int x, int y, int scale);
 unsigned int getPixelColor(int x, int y);
-void drawLineLow(double x0, double y0, double x1, double y1, int color);
-void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color, int scale);
-void drawLineHigh(double x0, double y0, double x1, double y1, int color);
-void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color, int scale);
-void drawLine(double x0, double y0, double x1, double y2, int color);
-void drawLineWithScale(double x0, double y0, double x1, double y2, int color, int Scale);
-void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
-void drawLine_line(struct Line* line, int color, int offsetX, int offsetY);
+void drawLineLow(double x0, double y0, double x1, double y1, unsigned int color);
+//void drawLineLowWithScale(double x0, double y0, double x1, double y1, unsigned int color, int scale);
+void drawLineHigh(double x0, double y0, double x1, double y1, unsigned int color);
+//void drawLineHighWithScale(double x0, double y0, double x1, double y1, unsigned int color, int scale);
+//void drawLine(double x0, double y0, double x1, double y2, unsigned int color);
+//void drawLineWithScale(double x0, double y0, double x1, double y2, unsigned int color, int Scale);
+//void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt);
+void drawLine_line(struct Line* line, unsigned int color, int offsetX, int offsetY);
 void loadLetters(char* fileName);
-int drawLetters(char c, int* x, int* y, unsigned int border_color, unsigned int fill_color);
+int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
 void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY);
 
 int main() {
@@ -83,7 +80,6 @@ int main() {
     }
 
     //Render and start animation
-    system("clear");
     
     loadLetters("spec.txt");
     
@@ -93,33 +89,96 @@ int main() {
     }
     printf("\n");
     int f;
-
-    int offsetX = MARGIN_HORIZONTAL;
-    int offsetY = MARGIN_VERTICAL;
+    int marginX = 150*SCALE;
+    int posX = marginX;
+    int posY = vinfo.yres/2;
     system("clear");
+    float degree = 10;
+    float wingDeg = 0;
+    float zoom = 1;
+    while (1) {
+        clear(rgbaToInt(0,0,0,0));
 
-    COLOR = rgbaToInt(255, 225, 0, 0);
-    
-    // for (int i=0;i<strlen(input);i++) {
-    //     if (input[i] == ' ') {
-    //         offsetX += MARGIN_HORIZONTAL*4;
-    //         continue;
-    //     }
-        drawLetters('A', &offsetX, &offsetY, rgbaToInt(255,0,0,0), COLOR);
-        drawLetters('B', &offsetX, &offsetY, rgbaToInt(0,255,0,0), COLOR);
-        drawLetters('C', &offsetX, &offsetY, rgbaToInt(0,0,255,0), COLOR);
-        drawLetters('D', &offsetX, &offsetY, rgbaToInt(0,255,255,0), COLOR);
+        wingDeg+=10;
+        if(posX < vinfo.xres/(1.75*SCALE) && zoom == 1){
+            if(degree < 10){
+                degree+=1;
 
-   // }
-    
-    for (int i=0; i<vinfo.yres/17; i++) {
-      printf("\n");
-    }
-    
+            } else if(degree == 10){
+                posX+=4;
+
+            }else{
+                degree = 10;
+            }
+        }
+        if(posX >= vinfo.xres/(1.75*SCALE) && zoom < 4){
+            if(degree > 0){
+                degree-=1;
+                posX+=5;
+
+            } else if(degree == 0){
+                zoom+= 0.025;
+
+            }else{
+                degree = 0;
+            }
+        }
+        if(zoom >= 4 && posX >marginX){
+            if(degree > -10){
+                degree-=1;
+                posX-=6;
+
+            } else if(degree == -10){
+                posX-=8;
+
+            }else{
+                degree = -10;
+            }
+      
+
+        }
+        if(posX < marginX){
+            posX = marginX;
+        }
+        if(posX == marginX && zoom !=1){
+            if(degree < 0){
+                degree+=1;
+
+            } else if(degree == 0){
+                zoom-= 0.025;
+
+            }else{
+                degree = 0;
+            }
+        }
+        if(zoom < 1){
+            zoom =1;
+        }
+        drawVector('C', posX, posY, rgbaToInt(0,0,255,0), rgbaToInt(0,0,150,0), degree, 50, 50, zoom);
+        drawVector('B', posX, posY, rgbaToInt(0,255,0,0), rgbaToInt(0,150,0,0), degree, 50, 50, zoom);
+        drawVector('A', posX, posY, rgbaToInt(255,0,0,0), rgbaToInt(150,0,0,0), degree, 50, 50, zoom);
+        drawVector('D', posX, posY, rgbaToInt(0,255,255,0), rgbaToInt(0,150,150,0),wingDeg, 50, 60, zoom);
+         usleep(30000);
+   }
+
+
+
     return 0;
 }
 
+void clear(int color){
+    long int location;
 
+    for(int x = 0; x < vinfo.xres;x++){
+        for(int y = 0; y < vinfo.yres;y++){
+             location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;
+            *(fbp + location) = color;
+            *(fbp + location + 1) = color >> 8;
+            *(fbp + location + 2) = color >> 16;
+            *(fbp + location + 3) = color >> 24;
+        }
+    }
+}
 unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }
@@ -131,11 +190,18 @@ unsigned int getPixelColor(int x, int y) {
     location = (x + vinfo.xoffset) * (vinfo.bits_per_pixel / 8) + (y + vinfo.yoffset) * finfo.line_length;
     unsigned int blue = *(fbp + location);
     unsigned int green = *(fbp + location + 1);
-    unsigned int red = *(fbp + location + 2) ^ 0xffffff00;
-    unsigned int alpha = *(fbp + location + 3);
+    unsigned int red = *(fbp + location + 2);
+    unsigned int alpha = *(fbp + location + 3) ^ 0xffffff00;
+    if(green > 127)
+        green = green ^ 0xffffff00;
+    if(red > 127)
+        red = red ^ 0xffffff00;
+    if(blue > 127)
+        blue = blue ^ 0xffffff00;
+    if(alpha > 127)
+        alpha = alpha ^ 0xffffff00;
 
-    
-    return (alpha << 24 | red << 16 | green << 8 | blue);
+   return rgbaToInt(red, green, blue, alpha);
 }
 
 void drawPixel(int x, int y, unsigned int color) {
@@ -152,19 +218,19 @@ void drawPixel(int x, int y, unsigned int color) {
         }
 }
 
-void drawPixelWithScale(int x, int y, unsigned int color, int scale) {
-    long int location;
-    int i = 0, j = 0;
-    x = x*scale; y = y*scale;
-    for (i = 0; i < scale; i++)
-        for (j = 0; j < scale; j++) {
-            location = (x+i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+j+vinfo.yoffset) * finfo.line_length;
-            *(fbp + location) = color;
-            *(fbp + location + 1) = color >> 8;
-            *(fbp + location + 2) = color >> 16;
-            *(fbp + location + 3) = color >> 24;
-        }
-}
+// void drawPixelWithScale(int x, int y, unsigned int color, int scale) {
+//     long int location;
+//     int i = 0, j = 0;
+//     x = x*scale; y = y*scale;
+//     for (i = 0; i < scale; i++)
+//         for (j = 0; j < scale; j++) {
+//             location = (x+i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+j+vinfo.yoffset) * finfo.line_length;
+//             *(fbp + location) = color;
+//             *(fbp + location + 1) = color >> 8;
+//             *(fbp + location + 2) = color >> 16;
+//             *(fbp + location + 3) = color >> 24;
+//         }
+// }
 
 int isValidPoint(int x, int y) {
     if (x >= 0 && x < vinfo.xres/SCALE && y >=0 && y < vinfo.yres/SCALE)
@@ -173,14 +239,14 @@ int isValidPoint(int x, int y) {
     return 0;
 }
 
-int isValidPointScale(int x, int y, int scale) {
-    if (x >= 0 && x < vinfo.xres/scale && y >=0 && y < vinfo.yres/scale)
-        return 1;
+// int isValidPointScale(int x, int y, int scale) {
+//     if (x >= 0 && x < vinfo.xres/scale && y >=0 && y < vinfo.yres/scale)
+//         return 1;
 
-    return 0;
-}
+//     return 0;
+// }
 
-void drawLineLow(double x0, double y0, double x1, double y1, int color) {
+void drawLineLow(double x0, double y0, double x1, double y1, unsigned int color) {
     double dx, dy, D;
     dx = x1 - x0;
     dy = y1 - y0;
@@ -207,32 +273,32 @@ void drawLineLow(double x0, double y0, double x1, double y1, int color) {
     
 }
 
-void drawLineLowWithScale(double x0, double y0, double x1, double y1, int color, int scale) {
-    double dx, dy, D;
-    dx = x1 - x0;
-    dy = y1 - y0;
-    int yi = 1;
-    if (dy < 0) {
-        yi = -1;
-        dy = -dy;
-    }
+// void drawLineLowWithScale(double x0, double y0, double x1, double y1, unsigned int color, int scale) {
+//     double dx, dy, D;
+//     dx = x1 - x0;
+//     dy = y1 - y0;
+//     int yi = 1;
+//     if (dy < 0) {
+//         yi = -1;
+//         dy = -dy;
+//     }
 
-    D = 2 * dy - dx;
-    int y = y0;
+//     D = 2 * dy - dx;
+//     int y = y0;
 
-    for (double x = x0; x <= x1; x++) {
-        if (isValidPointScale(x, y, scale) == 0)
-            return;
-        drawPixelWithScale(x, y, color, scale);
-        if (D > 0) {
-            y += yi;
-            D -= 2 * dx;
-        }
-        D += 2 * dy;
-    }
-}
+//     for (double x = x0; x <= x1; x++) {
+//         if (isValidPointScale(x, y, scale) == 0)
+//             return;
+//         drawPixelWithScale(x, y, color, scale);
+//         if (D > 0) {
+//             y += yi;
+//             D -= 2 * dx;
+//         }
+//         D += 2 * dy;
+//     }
+// }
 
-void drawLineHigh(double x0, double y0, double x1, double y1, int color) {
+void drawLineHigh(double x0, double y0, double x1, double y1, unsigned int color) {
     double dx, dy, D;
     dx = x1 - x0;
     dy = y1 - y0;
@@ -259,50 +325,50 @@ void drawLineHigh(double x0, double y0, double x1, double y1, int color) {
     }
 }
 
-void drawLineHighWithScale(double x0, double y0, double x1, double y1, int color, int scale) {
-    double dx, dy, D;
-    dx = x1 - x0;
-    dy = y1 - y0;
-    int xi = 1;
+// void drawLineHighWithScale(double x0, double y0, double x1, double y1, unsigned int color, int scale) {
+//     double dx, dy, D;
+//     dx = x1 - x0;
+//     dy = y1 - y0;
+//     int xi = 1;
 
-    if (dx < 0) {
-        xi = -1;
-        dx = -dx;
-    }
+//     if (dx < 0) {
+//         xi = -1;
+//         dx = -dx;
+//     }
 
-    D = 2 * dx - dy;
-    int x = x0;
+//     D = 2 * dx - dy;
+//     int x = x0;
 
-    for (double y = y0; y <= y1; y++) {
-        if (isValidPointScale(x, y, scale) == 0)
-            return;
-        drawPixelWithScale(x, y, color, scale);
-        if (D > 0) {
-            x += xi;
-            D -= 2 * dy;
-        }
+//     for (double y = y0; y <= y1; y++) {
+//         if (isValidPointScale(x, y, scale) == 0)
+//             return;
+//         drawPixelWithScale(x, y, color, scale);
+//         if (D > 0) {
+//             x += xi;
+//             D -= 2 * dy;
+//         }
 
-        D += 2 * dx;
-    }
-}
+//         D += 2 * dx;
+//     }
+// }
 
-void drawLine(double x0, double y0, double x1, double y1, int color) {
-    if (abs(y1 - y0) < abs(x1 - x0)) {
-        if (x0 > x1) {
-            drawLineLow(x1, y1, x0, y0, color);
-        } else {
-            drawLineLow(x0, y0, x1, y1, color);
-        }
-    } else {
-        if (y0 > y1) {
-            drawLineHigh(x1, y1, x0, y0, color);
-        } else {
-            drawLineHigh(x0, y0, x1, y1, color);
-        }
-    }
-}
+// void drawLine(double x0, double y0, double x1, double y1, unsigned int color) {
+//     if (abs(y1 - y0) < abs(x1 - x0)) {
+//         if (x0 > x1) {
+//             drawLineLow(x1, y1, x0, y0, color);
+//         } else {
+//             drawLineLow(x0, y0, x1, y1, color);
+//         }
+//     } else {
+//         if (y0 > y1) {
+//             drawLineHigh(x1, y1, x0, y0, color);
+//         } else {
+//             drawLineHigh(x0, y0, x1, y1, color);
+//         }
+//     }
+// }
 
-void drawLine_line(struct Line* line, int color, int offsetX, int offsetY) {
+void drawLine_line(struct Line* line, unsigned int color, int offsetX, int offsetY) {
     if (abs(line->points[1]->y - line->points[0]->y) < abs(line->points[1]->x - line->points[0]->x)) {
         if (line->points[0]->x > line->points[1]->x) {
             drawLineLow(line->points[1]->x + offsetX, line->points[1]->y + offsetY, line->points[0]->x + offsetX, line->points[0]->y + offsetY, color);
@@ -318,33 +384,33 @@ void drawLine_line(struct Line* line, int color, int offsetX, int offsetY) {
     }
 }
 
-void drawLineWithScale(double x0, double y0, double x1, double y1, int color, int scale) {
-    if (abs(y1 - y0) < abs(x1 - x0)) {
-        if (x0 > x1) {
-            drawLineLowWithScale(x1, y1, x0, y0, color, scale);
-        } else {
-            drawLineLowWithScale(x0, y0, x1, y1, color, scale);
-        }
-    } else {
-        if (y0 > y1) {
-            drawLineHighWithScale(x1, y1, x0, y0, color, scale);
-        } else {
-            drawLineHighWithScale(x0, y0, x1, y1, color, scale);
-        }
-    }
-}
+// void drawLineWithScale(double x0, double y0, double x1, double y1, unsigned int color, int scale) {
+//     if (abs(y1 - y0) < abs(x1 - x0)) {
+//         if (x0 > x1) {
+//             drawLineLowWithScale(x1, y1, x0, y0, color, scale);
+//         } else {
+//             drawLineLowWithScale(x0, y0, x1, y1, color, scale);
+//         }
+//     } else {
+//         if (y0 > y1) {
+//             drawLineHighWithScale(x1, y1, x0, y0, color, scale);
+//         } else {
+//             drawLineHighWithScale(x0, y0, x1, y1, color, scale);
+//         }
+//     }
+// }
 
-void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt) {
-    int t = *pt;
-    if (isValidPointScale(x0 + dx * t, y0 + dy * t, scale) == 0) {
-        t = 1; *pt = 1;
-    }
+// void drawLaser(int x0, int y0, int dx, int dy, int scale, int* pt) {
+//     int t = *pt;
+//     if (isValidPointScale(x0 + dx * t, y0 + dy * t, scale) == 0) {
+//         t = 1; *pt = 1;
+//     }
 
-    drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,0,0,0), scale);
-    x0 = x0 + dx * t;
-    y0 = y0 + dy * t;
-    drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,255,0,0), scale);
-}
+//     drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,0,0,0), scale);
+//     x0 = x0 + dx * t;
+//     y0 = y0 + dy * t;
+//     drawLineWithScale(x0, y0, x0 + dx * t, y0 + dy * t, rgbaToInt(0,255,0,0), scale);
+// }
 
 void loadLetters(char* fileName) {
     FILE * specFile;
@@ -407,8 +473,8 @@ void loadLetters(char* fileName) {
     fclose(specFile);
 }
 
-int drawLetters(char c, int* x, int* y, unsigned int border_color, unsigned int fill_color) {
-    // Find letter index
+int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom) {
+    // Find vector index
     int i = 0; int found = 0, idx = 0; 
     while (i < letterCount && found == 0) {
         if (letters[i]->name == c) {
@@ -422,20 +488,37 @@ int drawLetters(char c, int* x, int* y, unsigned int border_color, unsigned int 
         return 0;
     }
 
-    if (*x + MARGIN_HORIZONTAL + letters[idx]->width >= vinfo.xres / SCALE) {
-        *x = MARGIN_HORIZONTAL;
-        *y += letterHeight + MARGIN_VERTICAL;
-    }
-    //*x += MARGIN_HORIZONTAL;
-
-    // Draw letter border
+    // Draw Vector border
     for (int j = 0; j < letters[idx]->numOfLines; j++) {
-        drawLine_line(letters[idx]->lines[j], border_color, *x, *y);
+
+        //create rotated lines
+        double x1,y1;
+        x1 = letters[idx]->lines[j]->points[0]->x;
+        y1 = letters[idx]->lines[j]->points[0]->y;
+        //dilatate lines
+        x1 = (x1 - originX)*zoom + originX;
+        y1 = (y1 - originY)*zoom + originY;
+
+        double t=(22*degree)/(180*7);
+        double b1=((x1-originX)*cos(t))-((y1-originY)*sin(t)) + originX;
+        double b2=((x1-originX)*sin(t))+((y1-originY)*cos(t)) +originY;
+
+        double x2,y2;
+        x2 = letters[idx]->lines[j]->points[1]->x;
+        y2 = letters[idx]->lines[j]->points[1]->y;
+        //dilatate lines
+        x2 = (x2 - originX)*zoom + originX;
+        y2 = (y2 - originY)*zoom + originY;
+        double c1=((x2-originX)*cos(t))-((y2-originY)*sin(t)) + originX;
+        double c2=((x2-originX)*sin(t))+((y2-originY)*cos(t)) +originY;
+
+       struct Line * line = lineInit(b1,b2,c1,c2);
+        drawLine_line(line, border_color, x, y);
+       freeLine(line);
     }
 
-    fillLetter(letters[idx], fill_color, border_color, *x, *y);
+    //fillLetter(letters[idx], fill_color, border_color, x, y);
 
-    //*x += letters[idx]->width;
     return letters[idx]->width;    
 };
 

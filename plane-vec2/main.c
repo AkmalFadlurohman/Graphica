@@ -42,8 +42,8 @@ void drawLineHigh(double x0, double y0, double x1, double y1, unsigned int color
 void drawLine_line(struct Line* line, unsigned int color, int offsetX, int offsetY);
 void loadLetters(char* fileName);
 int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
-void fillLetter(struct VecLetter *vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY);
-
+void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY);
+int isCritPoint(int i, int j, unsigned int boundaryColor);
 int main() {
 
     int fbfd = 0;
@@ -111,7 +111,7 @@ int main() {
                 degree = 10;
             }
         }
-        if(posX >= vinfo.xres/(1.75*SCALE) && zoom < 4){
+        if(posX >= vinfo.xres/(1.75*SCALE) && zoom < 3){
             if(degree > 0){
                 degree-=1;
                 posX+=5;
@@ -123,7 +123,7 @@ int main() {
                 degree = 0;
             }
         }
-        if(zoom >= 4 && posX >marginX){
+        if(zoom >= 3 && posX >marginX){
             if(degree > -10){
                 degree-=1;
                 posX-=6;
@@ -158,9 +158,8 @@ int main() {
         drawVector('B', posX, posY, rgbaToInt(0,255,0,0), rgbaToInt(0,150,0,0), degree, 50, 50, zoom);
         drawVector('A', posX, posY, rgbaToInt(255,0,0,0), rgbaToInt(150,0,0,0), degree, 50, 50, zoom);
         drawVector('D', posX, posY, rgbaToInt(0,255,255,0), rgbaToInt(0,150,150,0),wingDeg, 50, 60, zoom);
-         usleep(30000);
+        usleep(30000);
    }
-
 
 
     return 0;
@@ -184,6 +183,9 @@ unsigned int rgbaToInt(int r, int g, int b, int a) {
 }
 
 unsigned int getPixelColor(int x, int y) {
+    if(!isValidPoint(x,y)){
+        return 0;
+    }
     long int location;
     x = x * SCALE;
     y = y * SCALE;
@@ -487,7 +489,10 @@ int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fil
     if (found == 0) {
         return 0;
     }
-
+    int min_X = 9999;
+    int min_Y = 9999;
+    int max_X = -1;
+    int max_Y = -1;
     // Draw Vector border
     for (int j = 0; j < letters[idx]->numOfLines; j++) {
 
@@ -512,49 +517,58 @@ int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fil
         double c1=((x2-originX)*cos(t))-((y2-originY)*sin(t)) + originX;
         double c2=((x2-originX)*sin(t))+((y2-originY)*cos(t)) +originY;
 
+        //update min/max Y
+        if(b1 < min_X)
+            min_X = b1;
+        if(c1 < min_X)
+            min_X = c1; 
+        if(b2 < min_Y)
+            min_Y = b2;
+        if(c2 < min_Y)
+            min_Y = c2; 
+
+        if(b1 > max_X)
+            max_X = b1;
+        if(c1 > max_X)
+            max_X = c1; 
+        if(b2 > max_Y)
+            max_Y = b2;
+        if(c2 > max_Y)
+            max_Y = c2; 
+
        struct Line * line = lineInit(b1,b2,c1,c2);
         drawLine_line(line, border_color, x, y);
        freeLine(line);
     }
 
-    //fillLetter(letters[idx], fill_color, border_color, x, y);
+    fillLetter(letters[idx], fill_color, border_color, x + min_X, y+ min_Y, x + max_X, y+ max_Y );
 
     return letters[idx]->width;    
 };
 
-void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int offsetX, int offsetY) {
+void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY) {
     int isFilling = -1;
-    int critExist = 0;
-    if (vecletter->critPoints != NULL) {
-        critExist = 1;
-    }
-    int critCounter = 0;
-    
-    // int isInside = 0;
 
-    for (int j = offsetY; j <= vecletter->height + offsetY; j++) {
+    for (int j = minY; j <= maxY; j++) {
         isFilling = -1;
-        for (int i= offsetX; i <= vecletter->width + offsetX; i++) {
+        for (int i= minX; i <= maxX; i++) {
             //crit point
-            if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x+offsetX && j == vecletter->critPoints[critCounter]->y+offsetY) {
-                critCounter++;
+            if (isCritPoint(i, j, boundaryColor)) {
                 continue;
-            }
-
+            } else
             if (getPixelColor(i, j) == boundaryColor) {
                 int initI = i;
-                while(getPixelColor(i, j) == boundaryColor && i <= vecletter->width + offsetX) {
+                while(getPixelColor(i, j) == boundaryColor && i <= maxX) {
                     i++;
                 }
 
-                if (critCounter < vecletter->numOfCritPoints && critExist == 1 && i == vecletter->critPoints[critCounter]->x + offsetX && j == vecletter->critPoints[critCounter]->y + +offsetY) {
-                    critCounter++;
-                    // continue;
+                if (isCritPoint(i, j,boundaryColor)) {
+
                 } else {
                     isFilling *= -1;
                 }
             }
-            if (i <= vecletter->width + offsetX) {
+            if (i <= maxX) {
                 if (isFilling > 0) {
                     drawPixel(i, j, color);
                 }
@@ -562,4 +576,32 @@ void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int bo
             
         }
     }
+}
+
+int checkUp(int i,int j, unsigned int boundaryColor){
+    return (getPixelColor(i-1,j-1) == boundaryColor || getPixelColor(i+1,j-1) == boundaryColor || getPixelColor(i,j-1) == boundaryColor);
+}
+int checkDown(int i,int j, unsigned int boundaryColor){
+    return (getPixelColor(i-1,j+1) == boundaryColor || getPixelColor(i,j+1) == boundaryColor || getPixelColor(i+1,j+1) == boundaryColor);
+}
+int checkLeft(int i, int j, unsigned int boundaryColor){
+    return (getPixelColor(i-1,j) == boundaryColor) ;
+}
+int isCritPoint(int i, int j, unsigned int boundaryColor){
+    
+    if(getPixelColor(i,j) != boundaryColor){
+        return 0;
+    }else {
+
+        int up = checkDown(i,j,boundaryColor);
+        int down = checkDown(i,j, boundaryColor);
+        if(up && down) {
+            return 0;
+        }
+ 
+
+        return 1;
+    } 
+
+    
 }

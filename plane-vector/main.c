@@ -13,7 +13,17 @@
 #include <sys/ioctl.h>
 #include "headers/VecLetter.h"
 #include <math.h>
+
 #define SCALE 1
+#define WORLD_WIDTH 4000
+#define WORLD_HEIGHT 2000
+
+//Game World
+unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
+int viewport_x;
+int viewport_y;
+int viewport_width;
+int viewport_height;
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -25,6 +35,7 @@ int fullY = 0;
 int letterCount, letterHeight;
 struct VecLetter** letters;
 
+void render();
 unsigned int rgbaToInt(int r, int g, int b, int a);
 void drawPixel(int x, int y, unsigned int color);
 //void drawPixelWithScale(int x, int y, unsigned int color, int scale);
@@ -78,29 +89,28 @@ int main() {
         perror("Error: failed to map framebuffer device to memory");
         exit(4);
     }
+    //Initialize viewport
+    viewport_width = vinfo.xres;
+    viewport_height = vinfo.yres;
+    viewport_x = WORLD_WIDTH/2;
+    viewport_y = WORLD_HEIGHT/2;
+    //tart animation and render
 
-    //Render and start animation
-    
     loadLetters("spec.txt");
     
-
-    for (int i=0; i<vinfo.yres/17; i++) {
-      printf("\n");
-    }
-    printf("\n");
+    int marginX = 100;
     int f;
-    int marginX = 150*SCALE;
-    int posX = marginX;
-    int posY = vinfo.yres/2;
+    int posX = viewport_x;
+    int posY = viewport_y + viewport_height/2;
     system("clear");
     float degree = 10;
     float wingDeg = 0;
     float zoom = 1;
+    int first = 1;
     while (1) {
-        clear(rgbaToInt(0,0,0,0));
 
         wingDeg+=10;
-        if(posX < vinfo.xres/(1.75*SCALE) && zoom == 1){
+        if(posX < viewport_x + viewport_width/2 && zoom == 1){
             if(degree < 10){
                 degree+=1;
 
@@ -111,70 +121,71 @@ int main() {
                 degree = 10;
             }
         }
-        if(posX >= vinfo.xres/(1.75*SCALE) && zoom < 3){
+        if(posX >= vinfo.xres/(1.75*SCALE) && zoom < 20){
             if(degree > 0){
                 degree-=1;
                 posX+=5;
 
             } else if(degree == 0){
-                zoom+= 0.025;
+                zoom+= 0.1;
 
             }else{
                 degree = 0;
             }
+         }
+        if(zoom >= 20)
+        if(viewport_x > 1200 && viewport_y > 700 && first){
+            viewport_x-=8;
+        } else if(viewport_x <= 1200 && viewport_y > 700){
+            first = 0;
+            viewport_y-=8;
+        } else if(viewport_x < 2800 && viewport_y <= 700){
+            viewport_x+=8;
+        } else if(viewport_x >= 2800 && viewport_y < 1250){
+            viewport_y+=8;
+        } else if(viewport_x > 1200 && viewport_y >= 1250){
+            viewport_x-=8;
         }
-        if(zoom >= 3 && posX >marginX){
-            if(degree > -10){
-                degree-=1;
-                posX-=6;
-
-            } else if(degree == -10){
-                posX-=8;
-
-            }else{
-                degree = -10;
-            }
-      
-
-        }
-        if(posX < marginX){
-            posX = marginX;
-        }
-        if(posX == marginX && zoom !=1){
-            if(degree < 0){
-                degree+=1;
-
-            } else if(degree == 0){
-                zoom-= 0.025;
-
-            }else{
-                degree = 0;
-            }
-        }
-        if(zoom < 1){
-            zoom =1;
-        }
+        clear(rgbaToInt(0,0,0,0));
         drawVector('C', posX, posY, rgbaToInt(0,0,255,0), rgbaToInt(0,0,150,0), degree, 50, 50, zoom);
         drawVector('B', posX, posY, rgbaToInt(0,255,0,0), rgbaToInt(0,150,0,0), degree, 50, 50, zoom);
         drawVector('A', posX, posY, rgbaToInt(255,0,0,0), rgbaToInt(150,0,0,0), degree, 50, 50, zoom);
         drawVector('D', posX, posY, rgbaToInt(0,255,255,0), rgbaToInt(0,150,150,0),wingDeg, 50, 60, zoom);
+        render();
         usleep(30000);
    }
 
 
     return 0;
 }
-
-void clear(int color){
+void render(){
     long int location;
+    int color;
 
-    for(int x = 0; x < vinfo.xres;x++){
-        for(int y = 0; y < vinfo.yres;y++){
-             location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;
+    for(int x = 0; x < viewport_width; x++){
+        for(int y = 0; y < viewport_height; y++){
+            int worldx = x + viewport_x;
+            int worldy = y + viewport_y;
+            if(isValidPoint(worldx,worldy)){
+                color = world[worldx][worldy];
+            }
+            else{
+                color = rgbaToInt(0,0,0,0);
+            }
+            location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;
             *(fbp + location) = color;
             *(fbp + location + 1) = color >> 8;
             *(fbp + location + 2) = color >> 16;
             *(fbp + location + 3) = color >> 24;
+        }
+    }
+}
+void clear(int color){
+    long int location;
+
+    for(int x = viewport_x; x < viewport_width + viewport_x; x++){
+        for(int y = viewport_y; y < viewport_height + viewport_y; y++){
+            world[x][y] = color;
         }
     }
 }
@@ -186,37 +197,18 @@ unsigned int getPixelColor(int x, int y) {
     if(!isValidPoint(x,y)){
         return 0;
     }
-    long int location;
     x = x * SCALE;
     y = y * SCALE;
-    location = (x + vinfo.xoffset) * (vinfo.bits_per_pixel / 8) + (y + vinfo.yoffset) * finfo.line_length;
-    unsigned int blue = *(fbp + location);
-    unsigned int green = *(fbp + location + 1);
-    unsigned int red = *(fbp + location + 2);
-    unsigned int alpha = *(fbp + location + 3) ^ 0xffffff00;
-    if(green > 127)
-        green = green ^ 0xffffff00;
-    if(red > 127)
-        red = red ^ 0xffffff00;
-    if(blue > 127)
-        blue = blue ^ 0xffffff00;
-    if(alpha > 127)
-        alpha = alpha ^ 0xffffff00;
 
-   return rgbaToInt(red, green, blue, alpha);
+   return world[x][y];
 }
 
 void drawPixel(int x, int y, unsigned int color) {
-    long int location;
     int i = 0, j = 0;
     x = x*SCALE; y = y*SCALE;
     for (i = 0; i < SCALE; i++)
         for (j = 0; j < SCALE; j++) {
-            location = (x+i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+j+vinfo.yoffset) * finfo.line_length;
-            *(fbp + location) = color;
-            *(fbp + location + 1) = color >> 8;
-            *(fbp + location + 2) = color >> 16;
-            *(fbp + location + 3) = color >> 24;
+            world[x+i][y+j] = color;
         }
 }
 
@@ -235,7 +227,7 @@ void drawPixel(int x, int y, unsigned int color) {
 // }
 
 int isValidPoint(int x, int y) {
-    if (x >= 0 && x < vinfo.xres/SCALE && y >=0 && y < vinfo.yres/SCALE)
+    if (x >= 0 && x < WORLD_WIDTH/SCALE && y >=0 && y < WORLD_HEIGHT/SCALE)
         return 1;
 
     return 0;
@@ -541,7 +533,7 @@ int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fil
        freeLine(line);
     }
 
-    fillLetter(letters[idx], fill_color, border_color, x + min_X, y+ min_Y, x + max_X, y+ max_Y );
+    //fillLetter(letters[idx], fill_color, border_color, x + min_X, y+ min_Y, x + max_X, y+ max_Y );
 
     return letters[idx]->width;    
 };

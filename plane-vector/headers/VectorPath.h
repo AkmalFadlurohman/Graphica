@@ -10,6 +10,11 @@ typedef struct VectorPath {
 	struct VectorPoint **firstPoint;
 	struct VectorPoint **lastPoint;
 	struct VectorPoint **criticalPoints;
+	int minX;
+	int minY;
+	int maxX;
+	int maxY;
+	int numOfPoints;
 } VectorPath;
 
 // Allocates memory for a VectorPath. The lastPoint member variable will be determined by the firstPoint path.

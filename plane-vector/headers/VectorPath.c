@@ -38,6 +38,10 @@ VectorPath* createVectorPath(VectorPoint* _firstPoint) {
 	
 	newPath->maxX = _firstPoint->x;
 	newPath->maxY = _firstPoint->y;
+
+	newPath->minX = _firstPoint->x;
+	newPath->minY = _firstPoint->y;
+
 	newPath->numOfPoints = 1;
 
 	if (_firstPoint != NULL) {
@@ -50,6 +54,13 @@ VectorPath* createVectorPath(VectorPoint* _firstPoint) {
 			}
 			if (newPath->maxY < _lastPoint->y) {
 				newPath->maxY = _lastPoint->y;
+			}
+
+			if (newPath->minX > _lastPoint->x) {
+				newPath->minX = _lastPoint->x;
+			}
+			if (newPath->minY > _lastPoint->y) {
+				newPath->minY = _lastPoint->y;
 			}
 
 			newPath->numOfPoints++;
@@ -84,11 +95,19 @@ VectorPath* createVectorPathFromFile(char* fileName) {
 	while (fscanf(externalFile, "%f,%f\n", &_x, &_y) == 2) {
 		newPath->numOfPoints++;
 		if (newPath->maxX < _x) {
-				newPath->maxX = _x;
-			}
-			if (newPath->maxY < _y) {
-				newPath->maxY = _y;
-			}
+			newPath->maxX = _x;
+		}
+		if (newPath->maxY < _y) {
+			newPath->maxY = _y;
+		}
+
+		if (newPath->minX > _x) {
+			newPath->minX = _x;
+		}
+		if (newPath->minY > _y) {
+			newPath->minY = _y;
+		}
+
 		if (fpeek(externalFile) == ';' && newPath->firstPoint[0]->x == _x && newPath->firstPoint[0]->y == _y) {
 			newPath->numOfPoints--;
 			enclosePath(newPath);

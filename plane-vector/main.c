@@ -114,7 +114,7 @@ int main() {
     int first = 1;
 
     // Initialize vector objects
-    VectorPath* rightTriangle = createVectorPathFromFile("huruf_s.txt");
+    VectorPath* rightTriangle = createVectorPathFromFile("right_triangle.txt");
     if (rightTriangle == NULL) {
         printf("Failed to load triangle\n");
         printf("last point: %p, nextPoint: %p\n", rightTriangle->lastPoint[0], rightTriangle->lastPoint[0]->nextPoint[0]);
@@ -381,6 +381,11 @@ int translatePath(VectorPath* path, int dx, int dy) {
     return 1;
 }
 
+// void fillVector(VectorPath* path, unsigned int color) {
+//     int isFilling = -1;
+
+//     for (int j = path->)
+// }
 // void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY) {
 //     int isFilling = -1;
 

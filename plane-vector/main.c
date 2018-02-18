@@ -119,7 +119,7 @@ int main() {
     VectorPath* rightTriangle = createVectorPathFromFile("right_triangle.txt");
     if (rightTriangle == NULL) {
         printf("Failed to load triangle\n");
-        printf("last point: %p, nextPoint: %p\n", rightTriangle->lastPoint[0], rightTriangle->lastPoint[0]->nextPoint[0]);
+        return 0;
     }
 
     int count = 0;
@@ -127,12 +127,15 @@ int main() {
 
     // Start animation and render
     while (RUNNING) {
-        clear(rgbaToInt(0,0,0,0));
+        // clear(rgbaToInt(0,0,0,0));
         drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
+        fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
         // translatePath(rightTriangle, dx, 0);
-        // rotatePath(rightTriangle, 90, 315 + (++count * dx), 415);
+        printf("%f,%f\n", rightTriangle->firstPoint[0]->x, rightTriangle->firstPoint[0]->y);
+        printf("%d %d\n", rightTriangle->maxX, rightTriangle->maxY);
+        // rotatePath(rightTriangle, 90, 315 + (0 * dx), 415);
         // dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
-        render();
+        // render();
         usleep(30000);
     }
 
@@ -189,7 +192,9 @@ unsigned int getPixelColor(int x, int y) {
 VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
 
     if (checkIfPathIsClosed(vecPath) == 1) {
-        VectorPoint** critPoint = malloc(vecPath->numOfPoints*sizeof(VectorPoint*));
+        VectorPoint** critPoint = malloc((vecPath->numOfPoints) * sizeof(VectorPoint*));
+        // VectorPoint* critPoint[vecPath->numOfPoints];
+
         int counter = 0;
         if (vecPath->firstPoint[0] != NULL)
         {
@@ -225,6 +230,11 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
         {
             printf("Path is empty\n");
         }
+
+        return critPoint;
+
+    } else {
+        return NULL;
     }
 }
 
@@ -417,6 +427,10 @@ int translatePath(VectorPath* path, int dx, int dy) {
         if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
             VectorPoint** currentPoint = path->firstPoint;
             VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
+            path->maxX = (path->maxX + dx);
+            path->maxY = (path->maxY + dy);
+            path->minX = (path->minX + dx);
+            path->minY = (path->minY + dy);
 
             do {
                 double x1 = currentPoint[0]->x;
@@ -439,67 +453,37 @@ int translatePath(VectorPath* path, int dx, int dy) {
     return 1;
 }
 
-// void fillVector(VectorPath* path, unsigned int color) {
-//     int isFilling = -1;
+void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor) {
+    int isFilling = -1;
+    VectorPoint** critPoints = determineCriticalPoint(path);
+    int count = 0;
 
-//     for (int j = path->)
-// }
-// void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY) {
-//     int isFilling = -1;
+    if (checkIfPathIsClosed(path)) {
+        for (int j = path->minY; j <= path->maxY; j++) {
+            isFilling = -1;
+            for (int i = path->minX; i <= path->maxX; i++) {
+                if (i == critPoints[count]->x && j == critPoints[count]->y) {
+                    count++;
+                    continue;
+                } else {
+                    if (getPixelColor(i, j) == boundaryColor) {
+                        while(getPixelColor(i, j) == boundaryColor && i <= path->maxX) {
+                            i++;
+                        }
 
-//     for (int j = minY; j <= maxY; j++) {
-//         isFilling = -1;
-//         for (int i= minX; i <= maxX; i++) {
-//             //crit point
-//             if (isCritPoint(i, j, boundaryColor)) {
-//                 continue;
-//             } else
-//             if (getPixelColor(i, j) == boundaryColor) {
-//                 int initI = i;
-//                 while(getPixelColor(i, j) == boundaryColor && i <= maxX) {
-//                     i++;
-//                 }
-
-//                 if (isCritPoint(i, j,boundaryColor)) {
-
-//                 } else {
-//                     isFilling *= -1;
-//                 }
-//             }
-//             if (i <= maxX) {
-//                 if (isFilling > 0) {
-//                     drawPixel(i, j, color);
-//                 }
-//             }
-            
-//         }
-//     }
-// }
-
-int checkUp(int i,int j, unsigned int boundaryColor){
-    return (getPixelColor(i-1,j-1) == boundaryColor || getPixelColor(i+1,j-1) == boundaryColor || getPixelColor(i,j-1) == boundaryColor);
-}
-int checkDown(int i,int j, unsigned int boundaryColor){
-    return (getPixelColor(i-1,j+1) == boundaryColor || getPixelColor(i,j+1) == boundaryColor || getPixelColor(i+1,j+1) == boundaryColor);
-}
-int checkLeft(int i, int j, unsigned int boundaryColor){
-    return (getPixelColor(i-1,j) == boundaryColor) ;
-}
-int isCritPoint(int i, int j, unsigned int boundaryColor){
-    
-    if(getPixelColor(i,j) != boundaryColor){
-        return 0;
-    }else {
-
-        int up = checkDown(i,j,boundaryColor);
-        int down = checkDown(i,j, boundaryColor);
-        if(up && down) {
-            return 0;
+                        if (i == critPoints[count]->x && j == critPoints[count]->y) {
+                            count++;
+                        } else {
+                            isFilling *= -1;
+                        }
+                    }
+                    if (i <= path->maxX) {
+                        if (isFilling > 0) {
+                            drawPixel(i, j, color);
+                        }
+                    }
+                }
+            }
         }
- 
-
-        return 1;
-    } 
-
-    
+    }
 }

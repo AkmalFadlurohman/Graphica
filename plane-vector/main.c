@@ -50,8 +50,9 @@ void drawPixel(int x, int y, unsigned int color);
 unsigned int rgbaToInt(int r, int g, int b, int a);
 unsigned int getPixelColor(int x, int y);
 VectorPoint** determineCriticalPoint(VectorPath* vecPath);
+int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint* vecPoint);
 
-int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
+    int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
 // void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 
@@ -188,7 +189,7 @@ unsigned int getPixelColor(int x, int y) {
 VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
 
     if (checkIfPathIsClosed(vecPath) == 1) {
-        //malloc
+        VectorPoint** critPoint = malloc(vecPath->numOfPoints*sizeof(VectorPoint*));
         int counter = 0;
         if (vecPath->firstPoint[0] != NULL)
         {
@@ -197,12 +198,20 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
             VectorPoint **prevToCheck = vecPath->firstPoint[0]->prevPoint;
             do
             {
-                if (nextToCheck[0]->y > currentToCheck[0]->y && prevToCheck[0]->y > currentToCheck[0]->y)
+                if ((nextToCheck[0]->y > currentToCheck[0]->y && prevToCheck[0]->y > currentToCheck[0]->y)
+                    || (nextToCheck[0]->y < currentToCheck[0]->y && prevToCheck[0]->y < currentToCheck[0]->y))
                 {
-                    
+                    critPoint[counter] = currentToCheck[0];
+                    counter += 1;
                 }
-
-
+                else if (nextToCheck[0]->y == currentToCheck[0]->y) {
+                    if (nextToCheck[0]->x > currentToCheck[0]->x) {
+                        critPoint[counter] = nextToCheck[0];
+                    } else {
+                        critPoint[counter] = currentToCheck[0];
+                    }
+                    counter += 1;
+                }
 
                 currentToCheck = nextToCheck;
                 prevToCheck = currentToCheck;
@@ -217,6 +226,20 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
             printf("Path is empty\n");
         }
     }
+}
+
+int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint *vecPoint) {
+    int counter = 0;
+    int found = 0;
+    while (found == 0 && counter < sizeOfArray && arrCritPoint[counter] != NULL) {
+        if (arrCritPoint[counter] == vecPoint) {
+            found = 1;
+        } else {
+            counter += 1;
+        }
+    }
+
+    return found;
 }
 
 void drawPixel(int x, int y, unsigned int color) {

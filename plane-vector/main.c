@@ -117,18 +117,19 @@ int main() {
     VectorPath* rightTriangle = createVectorPathFromFile("right_triangle.txt");
     if (rightTriangle == NULL) {
         printf("Failed to load triangle\n");
+        printf("last point: %p, nextPoint: %p\n", rightTriangle->lastPoint[0], rightTriangle->lastPoint[0]->nextPoint[0]);
     }
 
     int count = 0;
     int dx = 10;
-    
+
     // Start animation and render
     while (RUNNING) {
         clear(rgbaToInt(0,0,0,0));
         drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
         // translatePath(rightTriangle, dx, 0);
         // rotatePath(rightTriangle, 90, 315 + (++count * dx), 415);
-        dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
+        // dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
         render();
         usleep(30000);
     }
@@ -276,7 +277,10 @@ int drawVectorPath(VectorPath* path, unsigned int color, int offsetX, int offset
             VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
 
             do {
-                drawVectorLine(currentPoint[0], currentPoint[0]->nextPoint[0], color, offsetX, offsetY);
+                if (nextPoint[0] != NULL) {
+                    drawVectorLine(currentPoint[0], currentPoint[0]->nextPoint[0], color, offsetX, offsetY);
+                }
+
                 currentPoint = nextPoint;
 
                 if (currentPoint[0] != NULL) {

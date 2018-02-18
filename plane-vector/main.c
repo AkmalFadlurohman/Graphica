@@ -49,6 +49,7 @@ int translatePath(VectorPath* path, int dx, int dy);
 void drawPixel(int x, int y, unsigned int color);
 unsigned int rgbaToInt(int r, int g, int b, int a);
 unsigned int getPixelColor(int x, int y);
+VectorPoint** determineCriticalPoint(VectorPath* vecPath);
 
 int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
 // void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY);
@@ -182,6 +183,40 @@ unsigned int getPixelColor(int x, int y) {
     y = y * SCALE;
 
    return world[x][y];
+}
+
+VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
+
+    if (checkIfPathIsClosed(vecPath) == 1) {
+        //malloc
+        int counter = 0;
+        if (vecPath->firstPoint[0] != NULL)
+        {
+            VectorPoint **currentToCheck = vecPath->firstPoint;
+            VectorPoint **nextToCheck = vecPath->firstPoint[0]->nextPoint;
+            VectorPoint **prevToCheck = vecPath->firstPoint[0]->prevPoint;
+            do
+            {
+                if (nextToCheck[0]->y > currentToCheck[0]->y && prevToCheck[0]->y > currentToCheck[0]->y)
+                {
+                    
+                }
+
+
+
+                currentToCheck = nextToCheck;
+                prevToCheck = currentToCheck;
+                if (currentToCheck[0] != NULL)
+                {
+                    nextToCheck = currentToCheck[0]->nextPoint;
+                }
+            } while (currentToCheck[0] != NULL && currentToCheck[0] != vecPath->firstPoint[0]);
+        }
+        else
+        {
+            printf("Path is empty\n");
+        }
+    }
 }
 
 void drawPixel(int x, int y, unsigned int color) {

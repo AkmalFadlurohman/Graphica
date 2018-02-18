@@ -114,7 +114,7 @@ int main() {
     int first = 1;
 
     // Initialize vector objects
-    VectorPath* rightTriangle = createVectorPathFromFile("right_triangle.txt");
+    VectorPath* rightTriangle = createVectorPathFromFile("huruf_s.txt");
     if (rightTriangle == NULL) {
         printf("Failed to load triangle\n");
         printf("last point: %p, nextPoint: %p\n", rightTriangle->lastPoint[0], rightTriangle->lastPoint[0]->nextPoint[0]);

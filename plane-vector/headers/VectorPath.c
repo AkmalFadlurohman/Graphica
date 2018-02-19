@@ -146,6 +146,45 @@ void freeVectorPath(VectorPath* vectorPath) {
 	}
 }
 
+void checkForMinMaxUpdate(VectorPath* path) {
+	if (path != NULL) {
+        if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
+            VectorPoint** currentPoint = path->firstPoint;
+            VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
+
+            path->maxX = currentPoint[0]->x;
+			path->maxY = currentPoint[0]->y;
+			path->minX = currentPoint[0]->x;
+			path->minY = currentPoint[0]->y;
+
+            do {
+                if (path->maxX < currentPoint[0]->x) {
+					path->maxX = currentPoint[0]->x;
+				}
+				if (path->maxY < currentPoint[0]->y) {
+					path->maxY = currentPoint[0]->y;
+				}
+
+				if (path->minX > currentPoint[0]->x) {
+					path->minX = currentPoint[0]->x;
+				}
+				if (path->minY > currentPoint[0]->y) {
+					path->minY = currentPoint[0]->y;
+				}
+
+                currentPoint = nextPoint;
+                if (currentPoint[0] != NULL) {
+                    nextPoint = currentPoint[0]->nextPoint;
+                }
+            } while (currentPoint[0] != NULL && currentPoint[0] != path->firstPoint[0]);
+        } else {
+            
+        }
+    } else {
+        
+    }
+}
+
 void appendToPath(VectorPath* vectorPath, VectorPoint* newPoint) {
 	if (vectorPath == NULL) {
 		printf("[VectorPath.c => appendToPath()] The vector path given has a value of NULL\n");
@@ -281,4 +320,39 @@ VectorPoint* findPathMemberByCoordinate(VectorPath* vectorPath, float _x, float 
 	}
 
 	return NULL;
+}
+
+void printPoint(VectorPoint* input) {
+	printf("x: %.2f, y: %.2f,  prevPoint: %p, ownAddress: %p,  nextPoint: %p\n", input->x, input->y, input->prevPoint[0], input, input->nextPoint[0]);
+}
+
+// use this function pattern to traverse a VectorPath.
+void printPath(VectorPath* path) {
+	if (path != NULL) {
+		printf("First point: %p, Last point: %p\n", path->firstPoint[0], path->lastPoint[0]);
+		printf("maxX: %d maxY: %d\n", path->maxX, path->maxY);
+		printf("minX: %d minY: %d\n", path->minX, path->minY);
+		printf("numOfPoints: %d\n", path->numOfPoints);
+		if (path->firstPoint[0] != NULL) {
+			VectorPoint** currentToPrint = path->firstPoint;
+			VectorPoint** nextToPrint = path->firstPoint[0]->nextPoint;
+
+			do {
+				printPoint(currentToPrint[0]);
+				currentToPrint = nextToPrint;
+
+				if (currentToPrint[0] != NULL) {
+					nextToPrint = currentToPrint[0]->nextPoint;
+				}
+			} while (currentToPrint[0] != NULL && currentToPrint[0] != path->firstPoint[0]);
+		} else {
+			printf("Path is empty\n");
+		}
+
+		printf("Enclosed: %s", (checkIfPathIsClosed(path) != 0 ? "true" : "false"));
+	} else {
+		printf("Path is NULL\n");
+	}
+
+	printf("\n");
 }

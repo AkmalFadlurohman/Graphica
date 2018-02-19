@@ -51,9 +51,10 @@ unsigned int rgbaToInt(int r, int g, int b, int a);
 unsigned int getPixelColor(int x, int y);
 VectorPoint** determineCriticalPoint(VectorPath* vecPath);
 int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint* vecPoint);
+int isCriticalPoint(VectorPath* path, int _x, int _y);
 
-    int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
-// void fillLetter(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY);
+int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
+void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 
 int main() {
@@ -100,8 +101,8 @@ int main() {
     // Tolong diubah saat sudah siap pakai ya
     // viewport_x = WORLD_WIDTH/2;
     // viewport_y = WORLD_HEIGHT/2;
-    viewport_x = 15;
-    viewport_y = 15;
+    viewport_x = 40;
+    viewport_y = 40;
 
 
     // Initialize configuration    
@@ -116,7 +117,7 @@ int main() {
     int first = 1;
 
     // Initialize vector objects
-    VectorPath* rightTriangle = createVectorPathFromFile("right_triangle.txt");
+    VectorPath* rightTriangle = createVectorPathFromFile("badan_bawah.txt");
     if (rightTriangle == NULL) {
         printf("Failed to load triangle\n");
         return 0;
@@ -125,19 +126,33 @@ int main() {
     int count = 0;
     int dx = 10;
 
+
+    clear(rgbaToInt(0,0,0,0));
+    dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 5);
+    drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
+    fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+    // translatePath(rightTriangle, 30, 0);
+    // for (int j = rightTriangle->minY; j <= rightTriangle->maxY; j++) {
+    //     for (int i = rightTriangle->minY; i <= rightTriangle->maxY; i++)
+    //         drawPixel(i,j,rgbaToInt(0,0,255,0));
+    // }
+    render();
+    // printPath(rightTriangle);
+    // printf("maxX : %d maxY: %d\n", rightTriangle->maxX, rightTriangle->maxY);
+    // printf("minX : %d minY: %d\n", rightTriangle->minX, rightTriangle->minY);
     // Start animation and render
-    while (RUNNING) {
-        // clear(rgbaToInt(0,0,0,0));
-        drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
-        fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
-        // translatePath(rightTriangle, dx, 0);
-        printf("%f,%f\n", rightTriangle->firstPoint[0]->x, rightTriangle->firstPoint[0]->y);
-        printf("%d %d\n", rightTriangle->maxX, rightTriangle->maxY);
-        // rotatePath(rightTriangle, 90, 315 + (0 * dx), 415);
-        // dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
-        // render();
-        usleep(30000);
-    }
+    // while (RUNNING) {
+    //     clear(rgbaToInt(0,0,0,0));
+    //     drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
+    //     fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+    //     // translatePath(rightTriangle, dx, 0);
+    //     // printf("%f,%f\n", rightTriangle->firstPoint[0]->x, rightTriangle->firstPoint[0]->y);
+    //     // printf("%d %d\n", rightTriangle->maxX, rightTriangle->maxY);
+    //     // rotatePath(rightTriangle, 90, 315 + (0 * dx), 415);
+    //     // dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
+    //     render();
+    //     usleep(30000);
+    // }
 
 
     return 0;
@@ -237,6 +252,28 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
         return NULL;
     }
 }
+
+// int isCriticalPoint(VectorPath* path, int _x, int _y) {
+//     VectorPoint*  currentPoint = findPathMemberByCoordinate(path, _x, _y);
+//     printPoint(currentPoint);
+//     VectorPoint*  nextPoint = currentPoint->nextPoint[0];
+//     VectorPoint*  prevPoint = currentPoint->prevPoint[0];
+    
+//     if(checkIfPathIsClosed(path) == 1) {
+//         if ((nextPoint->y > currentPoint->y && prevPoint->y > currentPoint->y)
+//             || (nextPoint->y < currentPoint->y && prevPoint->y < currentPoint->y))
+//         {
+//             return 1;
+//         }
+//         else if (nextPoint->y == currentPoint->y || prevPoint->y == currentPoint->y) {
+//             if (nextPoint->x < currentPoint->x || prevPoint->x < currentPoint->x) {
+//                 return 1;
+//             }
+//         }
+//     }
+
+//     return 0;
+// }
 
 int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint *vecPoint) {
     int counter = 0;
@@ -392,6 +429,7 @@ int rotatePath(VectorPath* path, float degree, int originX, int originY) {
         return 0;
     }
 
+    checkForMinMaxUpdate(path);
     return 1;
 }
 
@@ -407,6 +445,7 @@ int dilatatePath(VectorPath* path, int originX, int originY, float zoom) {
                 currentPoint[0]->x = (x1 - originX) * zoom + originX;
                 currentPoint[0]->y = (y1 - originY) * zoom + originY;
 
+
                 currentPoint = nextPoint;
                 if (currentPoint[0] != NULL) {
                     nextPoint = currentPoint[0]->nextPoint;
@@ -419,6 +458,7 @@ int dilatatePath(VectorPath* path, int originX, int originY, float zoom) {
         return 0;
     }
 
+    checkForMinMaxUpdate(path);
     return 1;
 }
 
@@ -427,10 +467,6 @@ int translatePath(VectorPath* path, int dx, int dy) {
         if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
             VectorPoint** currentPoint = path->firstPoint;
             VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
-            path->maxX = (path->maxX + dx);
-            path->maxY = (path->maxY + dy);
-            path->minX = (path->minX + dx);
-            path->minY = (path->minY + dy);
 
             do {
                 double x1 = currentPoint[0]->x;
@@ -450,6 +486,7 @@ int translatePath(VectorPath* path, int dx, int dy) {
         return 0;
     }
 
+    checkForMinMaxUpdate(path);
     return 1;
 }
 
@@ -463,6 +500,7 @@ void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor
             isFilling = -1;
             for (int i = path->minX; i <= path->maxX; i++) {
                 if (i == critPoints[count]->x && j == critPoints[count]->y) {
+                    drawPixel(i,j,rgbaToInt(0,255,0,0));
                     count++;
                     continue;
                 } else {
@@ -487,3 +525,38 @@ void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor
         }
     }
 }
+
+// void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor) {
+//     int isFilling = -1;
+//     int count = 0;
+
+//     if (checkIfPathIsClosed(path)) {
+//         for (int j = path->minY; j <= path->maxY; j++) {
+//             isFilling = -1;
+//             for (int i = path->minX; i <= path->maxX; i++) {
+//                 if (isCriticalPoint(path, i, j) == 1) {
+//                     drawPixel(i,j,rgbaToInt(0,255,0,0));
+//                     count++;
+//                     continue;
+//                 } else {
+//                     if (getPixelColor(i, j) == boundaryColor) {
+//                         while(getPixelColor(i, j) == boundaryColor && i <= path->maxX) {
+//                             i++;
+//                         }
+
+//                         if (isCriticalPoint(path, i, j) == 1) {
+//                             count++;
+//                         } else {
+//                             isFilling *= -1;
+//                         }
+//                     }
+//                     if (i <= path->maxX) {
+//                         if (isFilling > 0) {
+//                             drawPixel(i, j, color);
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }

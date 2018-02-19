@@ -23,6 +23,8 @@ VectorPath* createVectorPath(struct VectorPoint* _firstPoint);
 VectorPath* createVectorPathFromFile(char* fileName);
 // Frees memory of a VectorPath along with all the points it contains
 void freeVectorPath(VectorPath* vectorPath);
+// Updates the path's min and max
+void checkForMinMaxUpdate(VectorPath* path);
 
 // Append a VectorPoint at the end of a path (becomes the new last point)
 void appendToPath(VectorPath* vectorPath, struct VectorPoint* vectorPoint);
@@ -46,4 +48,7 @@ int checkIfPathIsClosed(VectorPath* vectorPath);
 int isPathMember(VectorPath* path, struct VectorPoint* wantedPoint);
 // Return the address of point with the same coordinate specified if exist, NULL otherwise
 struct VectorPoint* findPathMemberByCoordinate(VectorPath* path, float _x, float _y);
+
+void printPoint(VectorPoint* input);
+void printPath(VectorPath* path);
 #endif

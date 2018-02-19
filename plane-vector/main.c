@@ -57,6 +57,9 @@ int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fil
 void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 
+void swapPoint(VectorPoint* point1, VectorPoint* point2);
+void bubbleSortPoint(VectorPoint** points, int size);
+
 int main() {
     // tak perlu disentuh lagi {
             int fbfd = 0;
@@ -128,8 +131,9 @@ int main() {
 
 
     // clear(rgbaToInt(0,0,0,0));
-    dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 5);
-    drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
+    dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 10);
+    translatePath(rightTriangle, 250, 250);
+    // drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
     // for (int j = rightTriangle->minY; j <= rightTriangle->maxY; j++) {
     //     for (int i = rightTriangle->minY; i <= rightTriangle->maxY; i++) {
     //         if (i == rightTriangle->minY && j == rightTriangle->maxX) {
@@ -138,25 +142,42 @@ int main() {
     //         drawPixel(i,j,rgbaToInt(0,0,255,0));
     //     }
     // }
-    fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
-    // translatePath(rightTriangle, 30, 0);
-    render();
+    // rotatePath(rightTriangle, 5, rightTriangle->maxX / 2, rightTriangle->maxY / 2);
+    // fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+    // clear(rgbaToInt(0,0,0,0));
+    // translatePath(rightTriangle, 100, 100);
+    // drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
+    // fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+    // render();
     // printPath(rightTriangle);
     // printf("maxX : %d maxY: %d\n", rightTriangle->maxX, rightTriangle->maxY);
     // printf("minX : %d minY: %d\n", rightTriangle->minX, rightTriangle->minY);
-    // Start animation and render
-    // while (RUNNING) {
-    //     clear(rgbaToInt(0,0,0,0));
-    //     drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
-    //     fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
-    //     // translatePath(rightTriangle, dx, 0);
-    //     // printf("%f,%f\n", rightTriangle->firstPoint[0]->x, rightTriangle->firstPoint[0]->y);
-    //     // printf("%d %d\n", rightTriangle->maxX, rightTriangle->maxY);
-    //     // rotatePath(rightTriangle, 90, 315 + (0 * dx), 415);
-    //     // dilatatePath(rightTriangle, 315/2, 415/2, 0.5);
-    //     render();
-    //     usleep(30000);
+
+    // VectorPoint** crit = determineCriticalPoint(rightTriangle);
+    // for (int i = 0; i < rightTriangle->numOfPoints; i++) {
+    //     if (crit[i] != NULL) {
+    //         printf("%f, %f\n", crit[i]->x, crit[i]->y);
+    //     }
     // }
+    // bubbleSortPoint(crit, rightTriangle->numOfPoints);
+    // for (int i = 0; i < rightTriangle->numOfPoints; i++) {
+    //     if (crit[i] != NULL) {
+    //         printf("%f, %f\n", crit[i]->x, crit[i]->y);
+    //     }
+    // }
+
+
+    // Start animation and render
+    while (RUNNING) {
+        clear(rgbaToInt(0,0,0,0));
+        // translatePath(rightTriangle, dx, 10);
+        // rotatePath(rightTriangle, 10, rightTriangle->maxX / 2, rightTriangle->maxY / 2);
+        dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 0.9);
+        drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
+        fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+        render();
+        usleep(300000);
+    }
 
 
     return 0;
@@ -228,7 +249,8 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
                     critPoint[counter] = currentToCheck[0];
                     counter += 1;
                 }
-                else if (nextToCheck[0]->y == currentToCheck[0]->y) {
+                
+                if (nextToCheck[0]->y == currentToCheck[0]->y) {
                     if (nextToCheck[0]->x > currentToCheck[0]->x) {
                         critPoint[counter] = nextToCheck[0];
                     } else {
@@ -237,13 +259,17 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
                     counter += 1;
                 }
 
-                currentToCheck = nextToCheck;
                 prevToCheck = currentToCheck;
+                currentToCheck = nextToCheck;
                 if (currentToCheck[0] != NULL)
                 {
                     nextToCheck = currentToCheck[0]->nextPoint;
                 }
             } while (currentToCheck[0] != NULL && currentToCheck[0] != vecPath->firstPoint[0]);
+
+            for (int i = counter; counter < vecPath->numOfPoints; counter++) {
+                critPoint[counter] = NULL;
+            }
         }
         else
         {
@@ -256,28 +282,6 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath) {
         return NULL;
     }
 }
-
-// int isCriticalPoint(VectorPath* path, int _x, int _y) {
-//     VectorPoint*  currentPoint = findPathMemberByCoordinate(path, _x, _y);
-//     printPoint(currentPoint);
-//     VectorPoint*  nextPoint = currentPoint->nextPoint[0];
-//     VectorPoint*  prevPoint = currentPoint->prevPoint[0];
-    
-//     if(checkIfPathIsClosed(path) == 1) {
-//         if ((nextPoint->y > currentPoint->y && prevPoint->y > currentPoint->y)
-//             || (nextPoint->y < currentPoint->y && prevPoint->y < currentPoint->y))
-//         {
-//             return 1;
-//         }
-//         else if (nextPoint->y == currentPoint->y || prevPoint->y == currentPoint->y) {
-//             if (nextPoint->x < currentPoint->x || prevPoint->x < currentPoint->x) {
-//                 return 1;
-//             }
-//         }
-//     }
-
-//     return 0;
-// }
 
 int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint *vecPoint) {
     int counter = 0;
@@ -498,22 +502,29 @@ void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor
     int isFilling = -1;
     VectorPoint** critPoints = determineCriticalPoint(path);
     int count = 0;
-
+    // for (int i = 0; i < path->numOfPoints; i++) {
+    //     if (critPoints[i] != NULL) {
+    //         // printf("%f, %f\n", critPoints[i]->x, critPoints[i]->y);
+    //     }
+    // }
+    // printf("===============================\n");
     if (checkIfPathIsClosed(path)) {
         for (int j = path->minY; j <= path->maxY; j++) {
             isFilling = -1;
             for (int i = path->minX; i <= path->maxX; i++) {
-                if (i == critPoints[count]->x && j == critPoints[count]->y) {
-                    drawPixel(i,j,rgbaToInt(0,255,0,0));
+                // printf("%d, %d\n", i, j);
+                if (i == round(critPoints[count]->x) && j == round(critPoints[count]->y)) {
+                    // printf("%f, %f\n", critPoints[count]->x, critPoints[count]->y);
                     count++;
                     continue;
                 } else {
                     if (getPixelColor(i, j) == boundaryColor) {
-                        while(getPixelColor(i, j) == boundaryColor && i <= path->maxX) {
+                        while(getPixelColor(i, j) == boundaryColor && i <= path->maxX && i != round(critPoints[count]->x) && j != round(critPoints[count]->y)) {
                             i++;
                         }
 
-                        if (i == critPoints[count]->x && j == critPoints[count]->y) {
+                        if (i == round(critPoints[count]->x) && j == round(critPoints[count]->y)) {
+                            // printf("%f, %f\n", critPoints[count]->x, critPoints[count]->y);
                             count++;
                         } else {
                             isFilling *= -1;
@@ -530,37 +541,66 @@ void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor
     }
 }
 
-// void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor) {
-//     int isFilling = -1;
-//     int count = 0;
+void swapPoint(VectorPoint* point1, VectorPoint* point2) {
+    double _x = point1->x;
+    double _y = point1->y;
+    VectorPoint** next = point1->nextPoint;
+    VectorPoint** prev = point1->prevPoint;
 
-//     if (checkIfPathIsClosed(path)) {
-//         for (int j = path->minY; j <= path->maxY; j++) {
-//             isFilling = -1;
-//             for (int i = path->minX; i <= path->maxX; i++) {
-//                 if (isCriticalPoint(path, i, j) == 1) {
-//                     drawPixel(i,j,rgbaToInt(0,255,0,0));
-//                     count++;
-//                     continue;
-//                 } else {
-//                     if (getPixelColor(i, j) == boundaryColor) {
-//                         while(getPixelColor(i, j) == boundaryColor && i <= path->maxX) {
-//                             i++;
-//                         }
+    point1->x = point2->x;
+    point1->y = point2->y;
+    point1->nextPoint = point2->nextPoint;
+    point1->prevPoint = point2->prevPoint;
 
-//                         if (isCriticalPoint(path, i, j) == 1) {
-//                             count++;
-//                         } else {
-//                             isFilling *= -1;
-//                         }
-//                     }
-//                     if (i <= path->maxX) {
-//                         if (isFilling > 0) {
-//                             drawPixel(i, j, color);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
+    point2->x = _x;
+    point2->y = _y;
+    point2->nextPoint = next;
+    point2->prevPoint = prev;
+}
+
+void bubbleSortPoint(VectorPoint** points, int size) {
+    int index = 0;
+    int stillSorting = 1;
+    int iteration = 0;
+
+    // sorting y
+    while (stillSorting > 0 && index < size - 1) {
+        index = 0;
+        stillSorting = 0;
+
+        iteration++;
+        // printf("iteration %d\n", iteration);
+        // printf("%f ? %f\n", points[index]->y, points[index + 1]->y);
+        if (points[index] != NULL && points[index + 1] != NULL && points[index]->y > points[index + 1]->y) {
+            // printf("swapped\n");
+            swapPoint(points[index], points[index + 1]);
+            stillSorting++;
+        }
+
+        index++;
+    }
+
+    index = 0;
+    stillSorting = 1;
+    int lastIndex = 0;
+    // sorting x
+    while (lastIndex < size) {
+        // printf("%d\n", lastIndex);
+        index = lastIndex;
+        if (points[index]->y == points[index + 1]->y) {
+            while(index < size - 1 && points[index]->y == points[index + 1]->y && stillSorting > 0) {
+                // printf("index %d\n", index);
+                stillSorting = 0;
+                if (points[index] != NULL && points[index + 1] != NULL && points[index] != NULL && points[index + 1] != NULL && points[index]->x > points[index + 1]->x) {
+                    // printf("swapped\n");
+                    swapPoint(points[index], points[index + 1]);
+                    stillSorting++;
+                }
+                index++;
+            }
+        } else {
+            index++;
+        }
+        lastIndex = index;
+    }
+}

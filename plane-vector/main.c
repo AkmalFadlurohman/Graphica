@@ -127,15 +127,19 @@ int main() {
     int dx = 10;
 
 
-    clear(rgbaToInt(0,0,0,0));
+    // clear(rgbaToInt(0,0,0,0));
     dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 5);
-    drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 25, 25);
+    drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
+    // for (int j = rightTriangle->minY; j <= rightTriangle->maxY; j++) {
+    //     for (int i = rightTriangle->minY; i <= rightTriangle->maxY; i++) {
+    //         if (i == rightTriangle->minY && j == rightTriangle->maxX) {
+    //             drawPixel(i,j,rgbaToInt(0,255,0,0));
+    //         }
+    //         drawPixel(i,j,rgbaToInt(0,0,255,0));
+    //     }
+    // }
     fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
     // translatePath(rightTriangle, 30, 0);
-    // for (int j = rightTriangle->minY; j <= rightTriangle->maxY; j++) {
-    //     for (int i = rightTriangle->minY; i <= rightTriangle->maxY; i++)
-    //         drawPixel(i,j,rgbaToInt(0,0,255,0));
-    // }
     render();
     // printPath(rightTriangle);
     // printf("maxX : %d maxY: %d\n", rightTriangle->maxX, rightTriangle->maxY);

@@ -23,8 +23,8 @@
 unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
 int viewport_x;
 int viewport_y;
-int viewport_width;
-int viewport_height;
+int viewport_width = 480;
+int viewport_height = 320;
 
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
@@ -34,13 +34,13 @@ int centerX = 0;
 int fullY = 0;
 
 void render();
-void clear(int color);
-
+void clearViewPort(int color);
+void clearScreen();
 int isValidPoint(int x, int y);
 void drawLineLow(double x0, double y0, double x1, double y1, unsigned int color);
 void drawLineHigh(double x0, double y0, double x1, double y1, unsigned int color);
 void drawVectorLine(VectorPoint* point1, VectorPoint* point2, unsigned int color, int offsetX, int offsetY);
-int drawVectorPath(VectorPath* path, unsigned int color, int offsetX, int offsetY);
+int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int color, int offsetX, int offsetY);
 
 int rotatePath(VectorPath* path, float degree, int originX, int originY);
 int dilatatePath(VectorPath* path, int originX, int originY, float zoom);
@@ -53,8 +53,7 @@ VectorPoint** determineCriticalPoint(VectorPath* vecPath);
 int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint* vecPoint);
 int isCriticalPoint(VectorPath* path, int _x, int _y);
 
-int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
-void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor);
+void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryColor, int offsetX, int offsetY);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 
 void swapPoint(VectorPoint* point1, VectorPoint* point2);
@@ -95,109 +94,103 @@ int main() {
                 exit(4);
             }
     // }
+    if(viewport_width > vinfo.xres || viewport_height > vinfo.yres){
+        printf("Ukuran viewport salah\n");
+
+        return 0;
+    }
 
 
-    // Initialize viewport
-    viewport_width = vinfo.xres;
-    viewport_height = vinfo.yres;
-
-    // Tolong diubah saat sudah siap pakai ya
-    // viewport_x = WORLD_WIDTH/2;
-    // viewport_y = WORLD_HEIGHT/2;
-    viewport_x = 40;
-    viewport_y = 40;
-
-
-    // Initialize configuration    
-    int marginX = 100;
-    int f;
-    int posX = viewport_x;
-    int posY = viewport_y + viewport_height/2;
-    system("clear");
-    float degree = 10;
-    float wingDeg = 0;
-    float zoom = 1;
-    int first = 1;
+    viewport_x = 0;
+    viewport_y = 0;
 
     // Initialize vector objects
-    VectorPath* rightTriangle = createVectorPathFromFile("badan_bawah.txt");
-    if (rightTriangle == NULL) {
-        printf("Failed to load triangle\n");
+    VectorPath* badan_bawah = createVectorPathFromFile("badan_bawah.txt");
+    if (badan_bawah == NULL) {
+        printf("Failed to load badan bawah\n");
+        return 0;
+    }
+    VectorPath* sayap_utama = createVectorPathFromFile("sayap.txt");
+    if (sayap_utama == NULL) {
+        printf("Failed to load sayap utama\n");
+        return 0;
+    }
+    VectorPath* sayap_belakang = createVectorPathFromFile("sayap_belakang.txt");
+    if (sayap_belakang == NULL) {
+        printf("Failed to load sayap belakang\n");
+        return 0;
+    }
+    VectorPath* baling_baling = createVectorPathFromFile("baling2.txt");
+    if (baling_baling == NULL) {
+        printf("Failed to load baling-baling\n");
         return 0;
     }
 
     int count = 0;
     int dx = 10;
 
+    dilatatePath(badan_bawah, 50, 50, 5);
+    dilatatePath(sayap_belakang, 50, 50, 5);
+    dilatatePath(sayap_utama, 50, 55, 5);
+    dilatatePath(baling_baling, 50, 60, 5);
 
-    // clear(rgbaToInt(0,0,0,0));
-    dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 10);
-    translatePath(rightTriangle, 250, 250);
-    // drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
-    // for (int j = rightTriangle->minY; j <= rightTriangle->maxY; j++) {
-    //     for (int i = rightTriangle->minY; i <= rightTriangle->maxY; i++) {
-    //         if (i == rightTriangle->minY && j == rightTriangle->maxX) {
-    //             drawPixel(i,j,rgbaToInt(0,255,0,0));
-    //         }
-    //         drawPixel(i,j,rgbaToInt(0,0,255,0));
-    //     }
-    // }
-    // rotatePath(rightTriangle, 5, rightTriangle->maxX / 2, rightTriangle->maxY / 2);
-    // fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
-    // clear(rgbaToInt(0,0,0,0));
-    // translatePath(rightTriangle, 100, 100);
-    // drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
-    // fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
-    // render();
-    // printPath(rightTriangle);
-    // printf("maxX : %d maxY: %d\n", rightTriangle->maxX, rightTriangle->maxY);
-    // printf("minX : %d minY: %d\n", rightTriangle->minX, rightTriangle->minY);
-
-    // VectorPoint** crit = determineCriticalPoint(rightTriangle);
-    // for (int i = 0; i < rightTriangle->numOfPoints; i++) {
-    //     if (crit[i] != NULL) {
-    //         printf("%f, %f\n", crit[i]->x, crit[i]->y);
-    //     }
-    // }
-    // bubbleSortPoint(crit, rightTriangle->numOfPoints);
-    // for (int i = 0; i < rightTriangle->numOfPoints; i++) {
-    //     if (crit[i] != NULL) {
-    //         printf("%f, %f\n", crit[i]->x, crit[i]->y);
-    //     }
-    // }
-
-
+    clearScreen();
     // Start animation and render
     while (RUNNING) {
-        clear(rgbaToInt(0,0,0,0));
+        clearViewPort(rgbaToInt(135,206,250,0));
         // translatePath(rightTriangle, dx, 10);
-        // rotatePath(rightTriangle, 10, rightTriangle->maxX / 2, rightTriangle->maxY / 2);
-        dilatatePath(rightTriangle, rightTriangle->maxX / 2, rightTriangle->maxY / 2, 0.9);
-        drawVectorPath(rightTriangle, rgbaToInt(255,255,255,255), 0, 0);
-        fillVector(rightTriangle, rgbaToInt(255,0,0,0), rgbaToInt(255,255,255,255));
+        rotatePath(baling_baling, 10,  50, 60);
+
+       drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 250, 250);
+        drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 250, 250);
+
+       drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 250, 250);
+
+       drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 250, 250);
+
+
+
         render();
-        usleep(300000);
+        usleep(30000);
     }
 
 
     return 0;
 }
-
+void clearScreen(){
+    long int location;
+    int color = rgbaToInt(0,0,0,0);
+    for(int x = 0; x < vinfo.xres; x++){
+        for(int y = 0; y < vinfo.yres; y++){
+            location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;
+            *(fbp + location) = color;
+            *(fbp + location + 1) = color >> 8;
+            *(fbp + location + 2) = color >> 16;
+            *(fbp + location + 3) = color >> 24; 
+        }
+    }
+}
 void render(){
     long int location;
     int color;
+    int offsetX = (vinfo.xres - viewport_width)/2;
+    int offsetY = (vinfo.yres - viewport_height)/2;
+
 
     for(int x = 0; x < viewport_width; x++){
         for(int y = 0; y < viewport_height; y++){
             int worldx = x + viewport_x;
             int worldy = y + viewport_y;
+            if(x == 0 || y == 0 || x == viewport_width -1 || y == viewport_height -1){
+                color = rgbaToInt(255,255,255,0);
+            } else
             if(isValidPoint(worldx,worldy)){
                 color = world[worldx][worldy];
             }
             else{
-                color = rgbaToInt(0,0,255,0);
+                color = rgbaToInt(0,0,0,0);
             }
-            location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;
+            location = (x+offsetX+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+offsetY+vinfo.yoffset) * finfo.line_length;
             *(fbp + location) = color;
             *(fbp + location + 1) = color >> 8;
             *(fbp + location + 2) = color >> 16;
@@ -206,7 +199,7 @@ void render(){
     }
 }
 
-void clear(int color){
+void clearViewPort(int color){
     long int location;
 
     for(int x = viewport_x; x < viewport_width + viewport_x; x++){
@@ -383,7 +376,7 @@ void drawVectorLine(VectorPoint* point1, VectorPoint* point2, unsigned int color
     }
 }
 
-int drawVectorPath(VectorPath* path, unsigned int color, int offsetX, int offsetY) {
+int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int fillColor, int offsetX, int offsetY) {
     if (path != NULL) {
         if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
             VectorPoint** currentPoint = path->firstPoint;
@@ -391,7 +384,7 @@ int drawVectorPath(VectorPath* path, unsigned int color, int offsetX, int offset
 
             do {
                 if (nextPoint[0] != NULL) {
-                    drawVectorLine(currentPoint[0], currentPoint[0]->nextPoint[0], color, offsetX, offsetY);
+                    drawVectorLine(currentPoint[0], currentPoint[0]->nextPoint[0], boundaryColor, offsetX, offsetY);
                 }
 
                 currentPoint = nextPoint;
@@ -406,6 +399,7 @@ int drawVectorPath(VectorPath* path, unsigned int color, int offsetX, int offset
     } else {
         return 0;
     }
+   fillVector(path, fillColor, boundaryColor, offsetX, offsetY);
 
     return 1;
 }
@@ -437,7 +431,7 @@ int rotatePath(VectorPath* path, float degree, int originX, int originY) {
         return 0;
     }
 
-    checkForMinMaxUpdate(path);
+   checkForMinMaxUpdate(path);
     return 1;
 }
 
@@ -498,7 +492,7 @@ int translatePath(VectorPath* path, int dx, int dy) {
     return 1;
 }
 
-void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor) {
+void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryColor, int offsetX, int offsetY) {
     int isFilling = -1;
     VectorPoint** critPoints = determineCriticalPoint(path);
     int count = 0;
@@ -509,30 +503,30 @@ void fillVector(VectorPath* path, unsigned int color, unsigned int boundaryColor
     // }
     // printf("===============================\n");
     if (checkIfPathIsClosed(path)) {
-        for (int j = path->minY; j <= path->maxY; j++) {
+        for (int j = path->minY + offsetY; j <= path->maxY + offsetY; j++) {
             isFilling = -1;
-            for (int i = path->minX; i <= path->maxX; i++) {
+            for (int i = path->minX + offsetX; i <= path->maxX + offsetX; i++) {
                 // printf("%d, %d\n", i, j);
-                if (i == round(critPoints[count]->x) && j == round(critPoints[count]->y)) {
+                if (i == round(critPoints[count]->x + offsetX) && j == round(critPoints[count]->y + offsetY)) {
                     // printf("%f, %f\n", critPoints[count]->x, critPoints[count]->y);
                     count++;
                     continue;
                 } else {
                     if (getPixelColor(i, j) == boundaryColor) {
-                        while(getPixelColor(i, j) == boundaryColor && i <= path->maxX && i != round(critPoints[count]->x) && j != round(critPoints[count]->y)) {
+                        while(getPixelColor(i, j) == boundaryColor && i <= path->maxX + offsetX && i != round(critPoints[count]->x) + + offsetX && j != round(critPoints[count]->y) + offsetY) {
                             i++;
                         }
 
-                        if (i == round(critPoints[count]->x) && j == round(critPoints[count]->y)) {
+                        if (i == round(critPoints[count]->x + offsetX) && j == round(critPoints[count]->y) + offsetY) {
                             // printf("%f, %f\n", critPoints[count]->x, critPoints[count]->y);
                             count++;
                         } else {
                             isFilling *= -1;
                         }
                     }
-                    if (i <= path->maxX) {
+                    if (i <= path->maxX+ offsetX) {
                         if (isFilling > 0) {
-                            drawPixel(i, j, color);
+                            drawPixel(i, j, fillColor);
                         }
                     }
                 }

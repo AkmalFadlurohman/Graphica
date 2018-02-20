@@ -16,7 +16,7 @@ VectorPoint* createVectorPoint(double _x, double _y) {
 		free(newPoint);
 		return NULL;
 	}
-
+	newPoint->isCrit == 0;
 	newPoint->prevPoint = malloc(sizeof(VectorPoint*));
 	if (newPoint->prevPoint == NULL) {
 		printf("[VectorPoint.c => createVectorPoint()] Failed to allocate memory for prevPoint pointer");

@@ -7,7 +7,8 @@
 
 struct VectorPoint {
 	struct VectorPoint **prevPoint; 
-	struct VectorPoint **nextPoint; 
+	struct VectorPoint **nextPoint;
+	int isCrit; 
 	double x;
 	double y;
 };

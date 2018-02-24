@@ -115,7 +115,7 @@ int main() {
     critColor = rgbaToInt(250,250,250,0);
     frameColor = rgbaToInt(235,0,0,0);
     viewport_x = 250;
-    viewport_y = 250;
+    viewport_y = 350;
 
     // Initialize vector objects
     VectorPath* badan_bawah = createVectorPathFromFile("badan_bawah.txt");

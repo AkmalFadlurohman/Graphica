@@ -54,45 +54,9 @@ void determineCriticalPoint(VectorPath* vecPath);
 void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryColor, int offsetX, int offsetY);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 
-// int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint* vecPoint);
-// int isCriticalPoint(VectorPath* path, int _x, int _y);
-// void swapPoint(VectorPoint* point1, VectorPoint* point2);
-// void bubbleSortPoint(VectorPoint** points, int size);
-
-void drawCircle(int x0, int y0, int radius)
-{
-    int x = radius-1;
-    int y = 0;
-    int dx = 1;
-    int dy = 1;
-    int err = dx - (radius << 1);
-
-    while (x >= y)
-    {
-        drawPixel(x0 + x, y0 + y, rgbaToInt(255,255,255,0));
-        drawPixel(x0 + y, y0 + x, rgbaToInt(255,255,255,0));
-        drawPixel(x0 - y, y0 + x, rgbaToInt(255,255,255,0));
-        drawPixel(x0 - x, y0 + y, rgbaToInt(255,255,255,0));
-        drawPixel(x0 - x, y0 - y, rgbaToInt(255,255,255,0));
-        drawPixel(x0 - y, y0 - x, rgbaToInt(255,255,255,0));
-        drawPixel(x0 + y, y0 - x, rgbaToInt(255,255,255,0));
-        drawPixel(x0 + x, y0 - y, rgbaToInt(255,255,255,0));
-
-        if (err <= 0)
-        {
-            y++;
-            err += dy;
-            dy += 2;
-        }
-        
-        if (err > 0)
-        {
-            x--;
-            dx += 2;
-            err += dx - (radius << 1);
-        }
-    }
-}
+// new in tugas_6
+void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned int fillColor);
+void fillCircle(unsigned int boundaryColor, unsigned int fillColor);
 
 int main() {
     // tak perlu disentuh lagi {
@@ -141,81 +105,12 @@ int main() {
     viewport_y = 250;
 
     clearScreen();
-    drawCircle(viewport_x + 70, viewport_y + 80, 30);
-    drawCircle(viewport_x + 80, viewport_y + 93, 45);
-    drawCircle(viewport_x + 100, viewport_y + 100, 50);
-    drawCircle(viewport_x + 130, viewport_y + 100, 69);
-    drawCircle(viewport_x + 250, viewport_y + 250, 150);
+    drawCircle(viewport_x + 250, viewport_y + 250, 150, rgbaToInt(255,255,255,0), rgbaToInt(0,0,255,1));
     render();
-  //   // Initialize vector objects
-  //   VectorPath* badan_bawah = createVectorPathFromFile("badan_bawah.txt");
-  //   if (badan_bawah == NULL) {
-  //       printf("Failed to load badan bawah\n");
-  //       return 0;
-  //   }
-  //   VectorPath* sayap_utama = createVectorPathFromFile("sayap.txt");
-  //   if (sayap_utama == NULL) {
-  //       printf("Failed to load sayap utama\n");
-  //       return 0;
-  //   }
-  //   VectorPath* sayap_belakang = createVectorPathFromFile("sayap_belakang.txt");
-  //   if (sayap_belakang == NULL) {
-  //       printf("Failed to load sayap belakang\n");
-  //       return 0;
-  //   }
-  //   VectorPath* baling_baling = createVectorPathFromFile("baling2.txt");
-  //   if (baling_baling == NULL) {
-  //       printf("Failed to load baling-baling\n");
-  //       return 0;
-  //   }
-
-  //   int count = 0;
-  //   int dx = 10;
-
-  //   dilatatePath(badan_bawah, 50, 50, 5);
-  //   dilatatePath(sayap_belakang, 50, 50, 5);
-  //   dilatatePath(sayap_utama, 50, 55, 5);
-  //   dilatatePath(baling_baling, 50, 60, 5);
-
-  //   clearScreen();
-  //   rotatePath(baling_baling, 10,  50, 60);
 
   //   // Start animation and render
   //  while (RUNNING) {
-  //      // clearViewPort(rgbaToInt(10,10,10,0));
-
-  //       clearViewPort(rgbaToInt(135,206,250,0));
-  //       // translatePath(rightTriangle, dx, 10);
-  //       rotatePath(baling_baling, 10,  50, 60);
-
-  //       drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
-  //       drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
-
-  //       drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
-
-  //       drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
-
-  //       render();
-  //       char c;
-  //       scanf("%c", &c);
-  //       if(c == 'w' || c == 'W'){
-  //           viewport_y -= VIEWPORT_SPEED;
-  //       } else if(c == 'a' || c == 'A'){
-  //           viewport_x -= VIEWPORT_SPEED;
-  //       } else if(c == 's' || c == 'S'){
-  //           viewport_y += VIEWPORT_SPEED;
-  //       } else if(c == 'd' || c == 'D'){
-  //           viewport_x += VIEWPORT_SPEED;
-  //       } 
-  //       if(viewport_x < 0)
-  //           viewport_x = 0;
-  //       if(viewport_y < 0)
-  //           viewport_y = 0;
-  //       if(viewport_x > WORLD_WIDTH - viewport_width)
-  //           viewport_x = WORLD_WIDTH - viewport_width;
-  //       if(viewport_y > WORLD_HEIGHT - viewport_height)
-  //           viewport_y = WORLD_HEIGHT - viewport_height;
-  //       usleep(3000);
+  
   // }
 
 
@@ -347,27 +242,14 @@ void determineCriticalPoint(VectorPath* vecPath) {
     }
 }
 
-// int isCritPointAlreadyExist(VectorPoint **arrCritPoint, int sizeOfArray, VectorPoint *vecPoint) {
-//     int counter = 0;
-//     int found = 0;
-//     while (found == 0 && counter < sizeOfArray && arrCritPoint[counter] != NULL) {
-//         if (arrCritPoint[counter] == vecPoint) {
-//             found = 1;
-//         } else {
-//             counter += 1;
-//         }
-//     }
-
-//     return found;
-// }
-
 void drawPixel(int x, int y, unsigned int color) {
     int i = 0, j = 0;
     x = x*SCALE; y = y*SCALE;
-    for (i = 0; i < SCALE; i++)
+    for (i = 0; i < SCALE; i++) {
         for (j = 0; j < SCALE; j++) {
             world[x+i][y+j] = color;
         }
+    }
 }
 
 int isValidPoint(int x, int y) {
@@ -619,12 +501,6 @@ void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryC
     int isFilling = -1;
 
     int count = 0;
-    // for (int i = 0; i < path->numOfPoints; i++) {
-    //     if (critPoints[i] != NULL) {
-    //         // printf("%f, %f\n", critPoints[i]->x, critPoints[i]->y);
-    //     }
-    // }
-    // // printf("===============================\n");
     determineCriticalPoint(path);
     drawCritPoint(path, offsetX, offsetY, boundaryColor);
 
@@ -632,7 +508,6 @@ void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryC
         for (int j = path->minY-1 + offsetY; j <= path->maxY + offsetY; j++) {
             isFilling = -1;
             for (int i = path->minX + offsetX -1; i <= path->maxX + offsetX; i++) {
-                // printf("%d, %d\n", i, j);
                 if (getPixelColor(i, j) == critColor) {
                     drawPixel(i,j, boundaryColor);
                     continue;
@@ -661,67 +536,116 @@ void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryC
 
 }
 
-// void swapPoint(VectorPoint* point1, VectorPoint* point2) {
-//     double _x = point1->x;
-//     double _y = point1->y;
-//     VectorPoint** next = point1->nextPoint;
-//     VectorPoint** prev = point1->prevPoint;
+void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned int fillColor) {
+    unsigned int circleFrame[radius * 2][radius * 2];
 
-//     point1->x = point2->x;
-//     point1->y = point2->y;
-//     point1->nextPoint = point2->nextPoint;
-//     point1->prevPoint = point2->prevPoint;
+    int isValidPointOnFrame(int x, int y) {
+        if (x >= 0 && x < radius/SCALE && y >=0 && y < radius/SCALE)
+            return 1;
 
-//     point2->x = _x;
-//     point2->y = _y;
-//     point2->nextPoint = next;
-//     point2->prevPoint = prev;
-// }
+        return 0;
+    }
 
-// void bubbleSortPoint(VectorPoint** points, int size) {
-//     int index = 0;
-//     int stillSorting = 1;
-//     int iteration = 0;
+    void drawPixelOnFrame(int x, int y, unsigned int color) {
+        int i = 0, j = 0;
+        x = x*SCALE; y = y*SCALE;
+        for (i = 0; i < SCALE; i++)
+            for (j = 0; j < SCALE; j++) {
+                circleFrame[x+i][y+j] = color;
+            }
+    }
 
-//     // sorting y
-//     while (stillSorting > 0 && index < size - 1) {
-//         index = 0;
-//         stillSorting = 0;
+    unsigned int getPixelColorOnFrame(int x, int y) {
+        if(!isValidPointOnFrame(x,y)){
+            return 0;
+        }
+        x = x * SCALE;
+        y = y * SCALE;
 
-//         iteration++;
-//         // printf("iteration %d\n", iteration);
-//         // printf("%f ? %f\n", points[index]->y, points[index + 1]->y);
-//         if (points[index] != NULL && points[index + 1] != NULL && points[index]->y > points[index + 1]->y) {
-//             // printf("swapped\n");
-//             swapPoint(points[index], points[index + 1]);
-//             stillSorting++;
-//         }
+       return circleFrame[x][y];
+    }
 
-//         index++;
-//     }
+    int isCircleCritPoint(int x, int y) {
+        return (x == x0 && (y == 0 || y == 2 * radius));
+    }
 
-//     index = 0;
-//     stillSorting = 1;
-//     int lastIndex = 0;
-//     // sorting x
-//     while (lastIndex < size) {
-//         // printf("%d\n", lastIndex);
-//         index = lastIndex;
-//         if (points[index]->y == points[index + 1]->y) {
-//             while(index < size - 1 && points[index]->y == points[index + 1]->y && stillSorting > 0) {
-//                 // printf("index %d\n", index);
-//                 stillSorting = 0;
-//                 if (points[index] != NULL && points[index + 1] != NULL && points[index] != NULL && points[index + 1] != NULL && points[index]->x > points[index + 1]->x) {
-//                     // printf("swapped\n");
-//                     swapPoint(points[index], points[index + 1]);
-//                     stillSorting++;
-//                 }
-//                 index++;
-//             }
-//         } else {
-//             index++;
-//         }
-//         lastIndex = index;
-//     }
+    void fillCircle() {
+        int isFilling = -1;
 
-// }
+        for (int j = 0; j <= radius; j++) {
+            isFilling = -1;
+            for (int i = 0; i <= radius; i++) {
+                if (getPixelColorOnFrame(i, j) == boundaryColor) {
+                    drawPixelOnFrame(i,j, boundaryColor);
+                    continue;
+                } else {
+                    if (getPixelColorOnFrame(i, j) == boundaryColor || isCircleCritPoint(i, j)) {
+                        while(getPixelColorOnFrame(i, j) == boundaryColor && i <= radius && getPixelColorOnFrame(i, j) != critColor) {
+                            i++;
+                        }
+
+                        if (isCircleCritPoint(i, j)) {
+                            drawPixelOnFrame(i,j, boundaryColor);
+
+                        } else {
+                            isFilling *= -1;
+                        }
+                    }
+                    if (i <= radius) {
+                        if (isFilling > 0) {
+                            drawPixelOnFrame(i, j, fillColor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void drawCircle() {
+        int minX = x0 - radius;
+        int maxX = x0 + radius;
+        int minY = y0 - radius;
+        int maxY = y0 + radius;
+
+        for (int x = 0; x < radius * 2; x++) {
+            for (int y = 0; y < radius * 2; y++) {
+                drawPixel(x + minX, y, circleFrame[x][y]);
+            }
+        }
+    }
+
+    int x = radius-1;
+    int y = 0;
+    int dx = 1;
+    int dy = 1;
+    int err = dx - (radius << 1);
+
+    while (x >= y)
+    {
+        drawPixelOnFrame(x0 + x, y0 + y, boundaryColor);
+        drawPixelOnFrame(x0 + y, y0 + x, boundaryColor);
+        drawPixelOnFrame(x0 - y, y0 + x, boundaryColor);
+        drawPixelOnFrame(x0 - x, y0 + y, boundaryColor);
+        drawPixelOnFrame(x0 - x, y0 - y, boundaryColor);
+        drawPixelOnFrame(x0 - y, y0 - x, boundaryColor);
+        drawPixelOnFrame(x0 + y, y0 - x, boundaryColor);
+        drawPixelOnFrame(x0 + x, y0 - y, boundaryColor);
+
+        if (err <= 0)
+        {
+            y++;
+            err += dy;
+            dy += 2;
+        }
+        
+        if (err > 0)
+        {
+            x--;
+            dx += 2;
+            err += dx - (radius << 1);
+        }
+    }
+
+    fillCircle();
+    drawCircle();
+}

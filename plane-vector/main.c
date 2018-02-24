@@ -21,12 +21,23 @@
 #define VIEWPORT_SPEED 5
 #define RUNNING 1
 
+#define BOTTOM 2
+#define TOP 1
+#define LEFT 8
+#define RIGHT 4
+#define TOP_LEFT 9 
+#define TOP_RIGHT 5
+#define BOTTOM_LEFT 10 
+#define BOTTOM_RIGHT 6
+#define MIDDLE 0
+
+
 //Game World
 unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
 int viewport_x;
 int viewport_y;
-int viewport_width = 640;
-int viewport_height = 480;
+int viewport_width = 480;
+int viewport_height = 240;
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
 
@@ -42,6 +53,7 @@ int isValidPoint(int x, int y);
 void drawLineLow(double x0, double y0, double x1, double y1, unsigned int color);
 void drawLineHigh(double x0, double y0, double x1, double y1, unsigned int color);
 void drawVectorLine(VectorPoint* point1, VectorPoint* point2, unsigned int color, int offsetX, int offsetY);
+int drawVectorPathClipping(VectorPath* path, unsigned int boundaryColor, unsigned int fillColor, int offsetX, int offsetY);
 int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int color, int offsetX, int offsetY);
 void drawCritPoint(VectorPath* path, int offsetX, int offsetY, unsigned int boundaryColor);
 int rotatePath(VectorPath* path, float degree, int originX, int originY);
@@ -61,38 +73,38 @@ int isCritPoint(int i, int j, unsigned int boundaryColor);
 
 int main() {
     // tak perlu disentuh lagi {
-            int fbfd = 0;
-            long int screensize = 0;
+    int fbfd = 0;
+    long int screensize = 0;
 
-            // Open the file for reading and writing
-            fbfd = open("/dev/fb0", O_RDWR);
-            if (fbfd == -1) {
-                perror("Error: cannot open framebuffer device");
-                exit(1);
-            }
+    // Open the file for reading and writing
+    fbfd = open("/dev/fb0", O_RDWR);
+    if (fbfd == -1) {
+        perror("Error: cannot open framebuffer device");
+        exit(1);
+    }
 
-            // Get fixed screen information
-            if (ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo) == -1) {
-                perror("Error reading fixed information");
-                exit(2);
-            }
+    // Get fixed screen information
+    if (ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo) == -1) {
+        perror("Error reading fixed information");
+        exit(2);
+    }
 
-            // Get variable screen information
-            if (ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
-                perror("Error reading variable information");
-                exit(3);
-            }
-            printf("Detected display: %dx%d, %dbpp\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
+    // Get variable screen information
+    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
+        perror("Error reading variable information");
+        exit(3);
+    }
+    printf("Detected display: %dx%d, %dbpp\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
 
-            // Figure out the size of the screen in bytes
-            screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
+    // Figure out the size of the screen in bytes
+    screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
 
-            // Map the device to memory
-            fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-            if ((int)fbp == -1) {
-                perror("Error: failed to map framebuffer device to memory");
-                exit(4);
-            }
+    // Map the device to memory
+    fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
+    if ((int)fbp == -1) {
+        perror("Error: failed to map framebuffer device to memory");
+        exit(4);
+    }
     // }
     if(viewport_width > vinfo.xres || viewport_height > vinfo.yres){
         printf("Ukuran viewport salah\n");
@@ -101,7 +113,7 @@ int main() {
     }
 
     critColor = rgbaToInt(250,250,250,0);
-    frameColor = rgbaToInt(247,247,247,0);
+    frameColor = rgbaToInt(235,0,0,0);
     viewport_x = 250;
     viewport_y = 250;
 
@@ -127,31 +139,33 @@ int main() {
         return 0;
     }
 
+
+
     int count = 0;
     int dx = 10;
 
-    dilatatePath(badan_bawah, 50, 50, 5);
-    dilatatePath(sayap_belakang, 50, 50, 5);
-    dilatatePath(sayap_utama, 50, 55, 5);
-    dilatatePath(baling_baling, 50, 60, 5);
+    dilatatePath(badan_bawah, 50, 50, 2);
+    dilatatePath(sayap_belakang, 50, 50, 2);
+    dilatatePath(sayap_utama, 50, 55, 2);
+    dilatatePath(baling_baling, 50, 60, 2);
 
     clearScreen();
     rotatePath(baling_baling, 10,  50, 60);
 
     // Start animation and render
    while (RUNNING) {
-       // clearViewPort(rgbaToInt(10,10,10,0));
+        // clearViewPort(rgbaToInt(10,10,10,0));
 
-       clearViewPort(rgbaToInt(135,206,250,0));
+        clearViewPort(rgbaToInt(135,206,250,0));
         // translatePath(rightTriangle, dx, 10);
-       rotatePath(baling_baling, 10,  50, 60);
+        rotatePath(baling_baling, 10,  50, 60);
 
-       drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
+        drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
         drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
 
-      drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
+        drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
 
-     drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
+        drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
 
 
 
@@ -166,7 +180,17 @@ int main() {
             viewport_y += VIEWPORT_SPEED;
         } else if(c == 'd' || c == 'D'){
             viewport_x += VIEWPORT_SPEED;
-        } 
+        } else if(c == 'z' || c == 'Z'){
+            dilatatePath(badan_bawah, 50, 50, 1.1);
+            dilatatePath(sayap_belakang, 50, 50, 1.1);
+            dilatatePath(sayap_utama, 50, 55, 1.1);
+            dilatatePath(baling_baling, 50, 60, 1.1);
+        } else if(c == 'x' || c == 'X'){
+            dilatatePath(badan_bawah, 50, 50, 0.9);
+            dilatatePath(sayap_belakang, 50, 50, 0.9);
+            dilatatePath(sayap_utama, 50, 55, 0.9);
+            dilatatePath(baling_baling, 50, 60, 0.9);
+        }
         if(viewport_x < 0)
             viewport_x = 0;
         if(viewport_y < 0)
@@ -205,9 +229,9 @@ void render(){
         for(int y = 0; y < viewport_height; y++){
             int worldx = x + viewport_x;
             int worldy = y + viewport_y;
-            // if(x == 0 || y == 0 || x == viewport_width -1 || y == viewport_height -1){
-            //     color = frameColor;
-            // } else
+            if(x == 0 || y == 0 || x == viewport_width -1 || y == viewport_height -1){
+                color = frameColor;
+            } else
             if(isValidPoint(worldx,worldy)){
                 color = world[worldx][worldy];
             }
@@ -423,6 +447,159 @@ void drawVectorLine(VectorPoint* point1, VectorPoint* point2, unsigned int color
     }
 }
 
+int getPointCode(int x, int y, double offsetX, double offsetY){
+    int viewport_max_x = viewport_x + viewport_width;
+    int viewport_max_y = viewport_y + viewport_height;
+    int code = 0;
+    if(x + offsetX < viewport_x){
+        code = code + LEFT;
+    }
+    if(x + offsetX> viewport_max_x -1){
+        code = code + RIGHT;
+    }
+    if(y + offsetY< viewport_y){
+        code = code + TOP;
+    }
+    if(y + offsetY> viewport_max_y -1){
+        code = code + BOTTOM;
+    }
+    return code;
+}
+
+VectorPath * vectorClipping (VectorPath * path, int offsetX, int offsetY){
+    VectorPath * clipped;
+    if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
+
+
+        VectorPoint** currentPoint = path->firstPoint;
+        VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
+        int isFirst = 1;
+        do {
+            //Clipping code
+            int code_point1 = getPointCode(currentPoint[0]->x,currentPoint[0]->y, offsetX, offsetY);
+            int code_point2 = getPointCode(nextPoint[0]->x,nextPoint[0]->y, offsetX, offsetY);
+
+            int accept =0;
+            int done = 0;
+            int xmax = viewport_x + viewport_width;
+            int ymax = viewport_y + viewport_height;
+            int ymin = viewport_y;
+            int xmin = viewport_x;
+            double x1 = currentPoint[0]->x + offsetX;
+            double y1 = currentPoint[0]->y + offsetY;
+            double x2 = nextPoint[0]->x + offsetY;
+            double y2 = nextPoint[0]->y +offsetX;
+
+
+                if(code_point1 == 0 && code_point2 == 0){
+                
+                    accept = 1;
+                    done = 1;
+    
+                } else if(code_point1 & code_point2){
+                    done = 1;
+                } else{
+
+                     double x, y;
+
+                    int code_point_ex = code_point1 ? code_point1 : code_point2;
+                    if (code_point_ex == code_point1){
+
+                        if (code_point_ex & TOP)
+                        {
+                            x = x1 + (x2 - x1) * (ymax - y1) / (y2 - y1);
+                            y = ymax;
+                        }     
+                        else if (code_point_ex & BOTTOM)
+                        {
+                            x = x1 + (x2 - x1) * (ymin - y1) / (y2 - y1);
+                            y = ymin;
+                        }
+                        else if (code_point_ex & RIGHT)
+                        {
+                            y = y1 + (y2 - y1) * (xmax - x1) / (x2 - x1);
+                            x = xmax;
+                        }
+                        else
+                        {
+                            y = y1 + (y2 - y1) * (xmin - x1) / (x2 - x1);
+                            x = xmin;
+                        }
+                        x1 = x;
+                        y1 = y;
+                        accept = 1;
+                        code_point1 = getPointCode(x1,y1, offsetX, offsetY);
+                    }
+
+
+                }
+
+            if(accept){
+                if(isFirst == 1){
+                    clipped = createVectorPath(createVectorPoint(x1-offsetX, y1- offsetY));
+                    isFirst = 0;
+
+                } else {
+                    appendToPath(clipped, createVectorPoint(x1-offsetX, y1 - offsetY));
+                }  
+            }
+
+
+
+            currentPoint = nextPoint;
+            if (currentPoint[0] != NULL) {
+                nextPoint = currentPoint[0]->nextPoint;
+            }
+
+        } while (currentPoint[0] != NULL && currentPoint[0] != path->firstPoint[0]);
+
+        
+
+        if(clipped->numOfPoints > 2){
+            enclosePath(clipped);
+            return clipped;        
+        }
+        return NULL;
+
+    }
+}
+
+int drawVectorPathClipping(VectorPath* path, unsigned int boundaryColor, unsigned int fillColor, int offsetX, int offsetY) {
+    if (path != NULL) {
+        VectorPath * toDraw = vectorClipping(path, offsetX, offsetY);
+        if(toDraw != NULL){
+            if (toDraw->firstPoint[0] != NULL && toDraw->firstPoint[0]->nextPoint[0] != NULL) {
+                VectorPoint** currentPoint = toDraw->firstPoint;
+                VectorPoint** nextPoint = toDraw->firstPoint[0]->nextPoint;
+
+                do {
+                    if (nextPoint[0] != NULL) {
+                        drawVectorLine(currentPoint[0], currentPoint[0]->nextPoint[0], boundaryColor, offsetX, offsetY);
+                    }
+
+
+                    currentPoint = nextPoint;
+
+                    if (currentPoint[0] != NULL) {
+                        nextPoint = currentPoint[0]->nextPoint;
+                    }
+                } while (currentPoint[0] != NULL && currentPoint[0] != toDraw->firstPoint[0]);
+            } else {
+                return 0;
+            }
+            fillVector(toDraw, fillColor, boundaryColor, offsetX, offsetY);            
+        } else{
+            return 0;
+        }
+
+
+
+    } else {
+        return 0;
+    }
+
+    return 1;
+}
 int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int fillColor, int offsetX, int offsetY) {
     if (path != NULL) {
 
@@ -618,6 +795,7 @@ void fillVector(VectorPath* path, unsigned int fillColor, unsigned int boundaryC
     }
 
 }
+
 
 // void swapPoint(VectorPoint* point1, VectorPoint* point2) {
 //     double _x = point1->x;

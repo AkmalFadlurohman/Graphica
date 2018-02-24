@@ -211,6 +211,7 @@ void appendToPath(VectorPath* vectorPath, VectorPoint* newPoint) {
 		} else {
 			vectorPath->firstPoint[0] = newPoint;
 		}
+		vectorPath->numOfPoints++;
 	}
 
 }

@@ -105,7 +105,9 @@ int main() {
     viewport_y = 250;
 
     clearScreen();
-    drawCircle(viewport_x + 250, viewport_y + 250, 150, rgbaToInt(255,255,255,0), rgbaToInt(0,0,255,1));
+    drawCircle(viewport_x + 250, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
+    drawCircle(viewport_x + 350, viewport_y + 250, 100, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
+    drawCircle(viewport_x + 200, viewport_y + 200, 150, rgbaToInt(0,0,255,0), rgbaToInt(255,0,0,0));
     render();
 
   //   // Start animation and render
@@ -141,9 +143,6 @@ void render(){
         for(int y = 0; y < viewport_height; y++){
             int worldx = x + viewport_x;
             int worldy = y + viewport_y;
-            // if(x == 0 || y == 0 || x == viewport_width -1 || y == viewport_height -1){
-            //     color = frameColor;
-            // } else
             if(isValidPoint(worldx,worldy)){
                 color = world[worldx][worldy];
             }
@@ -540,7 +539,7 @@ void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned
     unsigned int circleFrame[radius * 2][radius * 2];
 
     int isValidPointOnFrame(int x, int y) {
-        if (x >= 0 && x < radius/SCALE && y >=0 && y < radius/SCALE)
+        if (x >= 0 && x < radius * 2/SCALE && y >=0 && y < radius * 2/SCALE)
             return 1;
 
         return 0;
@@ -566,37 +565,38 @@ void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned
     }
 
     int isCircleCritPoint(int x, int y) {
-        return (x == x0 && (y == 0 || y == 2 * radius));
+        return ((y == 1 || y == (2 * radius) - 1));
     }
 
+    int isOnBoundary(int x, int y) {
+        return getPixelColorOnFrame(x, y) == boundaryColor;
+    }
     void fillCircle() {
         int isFilling = -1;
 
-        for (int j = 0; j <= radius; j++) {
+        for (int j = 0; j <= radius * 2; j++) {
             isFilling = -1;
-            for (int i = 0; i <= radius; i++) {
-                if (getPixelColorOnFrame(i, j) == boundaryColor) {
-                    drawPixelOnFrame(i,j, boundaryColor);
-                    continue;
-                } else {
-                    if (getPixelColorOnFrame(i, j) == boundaryColor || isCircleCritPoint(i, j)) {
-                        while(getPixelColorOnFrame(i, j) == boundaryColor && i <= radius && getPixelColorOnFrame(i, j) != critColor) {
-                            i++;
-                        }
-
-                        if (isCircleCritPoint(i, j)) {
-                            drawPixelOnFrame(i,j, boundaryColor);
-
-                        } else {
-                            isFilling *= -1;
-                        }
+            for (int i = 0; i <= radius * 2; i++) {
+                if (getPixelColorOnFrame(i, j)) {
+                    while (isOnBoundary(i, j)) {
+                        i++;
                     }
-                    if (i <= radius) {
-                        if (isFilling > 0) {
-                            drawPixelOnFrame(i, j, fillColor);
-                        }
+                    isFilling *= -1;
+                }
+
+                if (isCircleCritPoint(i, j)) { 
+                    continue;
+                }
+
+                if (i < radius * 2) {
+                    if (isFilling > 0) {
+                        drawPixelOnFrame(i, j, fillColor);
                     }
                 }
+
+                // if (i == 0 || j == 0 || i == (radius * 2) - 1 || j == (radius * 2) - 1) {
+                //     drawPixelOnFrame(i, j, rgbaToInt(255,0,0,0));
+                // }
             }
         }
     }
@@ -609,27 +609,46 @@ void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned
 
         for (int x = 0; x < radius * 2; x++) {
             for (int y = 0; y < radius * 2; y++) {
-                drawPixel(x + minX, y, circleFrame[x][y]);
+                if (circleFrame[x][y] == boundaryColor || circleFrame[x][y] == fillColor) {
+                    drawPixel(x + minX, y + minY, circleFrame[x][y]);
+                }
             }
         }
     }
 
+    void clearFrame() {
+        for (int i = 0; i < radius * 2; i++) {
+            for (int j = 0; j < radius * 2; j++) {
+                unsigned int clearColor = rgbaToInt(0,0,0,0);
+                if (boundaryColor == clearColor || fillColor == clearColor) {
+                    clearColor = rgbaToInt(255,255,255,255);
+                } else {
+                    
+                }
+                circleFrame[i][j] = clearColor;
+            }
+        }
+    }
+
+    int centerX = radius;
+    int centerY = radius;
     int x = radius-1;
     int y = 0;
     int dx = 1;
     int dy = 1;
     int err = dx - (radius << 1);
 
+    clearFrame();
     while (x >= y)
     {
-        drawPixelOnFrame(x0 + x, y0 + y, boundaryColor);
-        drawPixelOnFrame(x0 + y, y0 + x, boundaryColor);
-        drawPixelOnFrame(x0 - y, y0 + x, boundaryColor);
-        drawPixelOnFrame(x0 - x, y0 + y, boundaryColor);
-        drawPixelOnFrame(x0 - x, y0 - y, boundaryColor);
-        drawPixelOnFrame(x0 - y, y0 - x, boundaryColor);
-        drawPixelOnFrame(x0 + y, y0 - x, boundaryColor);
-        drawPixelOnFrame(x0 + x, y0 - y, boundaryColor);
+        drawPixelOnFrame(centerX + x, centerY + y, boundaryColor);
+        drawPixelOnFrame(centerX + y, centerY + x, boundaryColor);
+        drawPixelOnFrame(centerX - y, centerY + x, boundaryColor);
+        drawPixelOnFrame(centerX - x, centerY + y, boundaryColor);
+        drawPixelOnFrame(centerX - x, centerY - y, boundaryColor);
+        drawPixelOnFrame(centerX - y, centerY - x, boundaryColor);
+        drawPixelOnFrame(centerX + y, centerY - x, boundaryColor);
+        drawPixelOnFrame(centerX + x, centerY - y, boundaryColor);
 
         if (err <= 0)
         {

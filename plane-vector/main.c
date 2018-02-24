@@ -631,33 +631,33 @@ int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int fi
     return 1;
 }
 
-VectorPath** clipVector(VectorPath* pathToClip, int viewport_x, int viewporty_y, int viewport_width, int viewport_height) {
-    if (path != NULL) {
-        if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
-            VectorPoint** currentPoint = path->firstPoint;
-            VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
+// VectorPath** clipVector(VectorPath* path, int viewport_x, int viewporty_y, int viewport_width, int viewport_height) {
+//     if (path != NULL) {
+//         if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
+//             VectorPoint** currentPoint = path->firstPoint;
+//             VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
 
-            double t=(22*degree)/(180*7);
+//             double t=(22*degree)/(180*7);
 
-            do {
-                double x1 = currentPoint[0]->x;
-                double y1 = currentPoint[0]->y;
+//             do {
+//                 double x1 = currentPoint[0]->x;
+//                 double y1 = currentPoint[0]->y;
 
-                currentPoint[0]->x = ((x1-originX)*cos(t))-((y1-originY)*sin(t)) + originX;
-                currentPoint[0]->y = ((x1-originX)*sin(t))+((y1-originY)*cos(t)) +originY;
+//                 currentPoint[0]->x = ((x1-originX)*cos(t))-((y1-originY)*sin(t)) + originX;
+//                 currentPoint[0]->y = ((x1-originX)*sin(t))+((y1-originY)*cos(t)) +originY;
 
-                currentPoint = nextPoint;
-                if (currentPoint[0] != NULL) {
-                    nextPoint = currentPoint[0]->nextPoint;
-                }
-            } while (currentPoint[0] != NULL && currentPoint[0] != path->firstPoint[0]);
-        } else {
-            return 0;
-        }
-    } else {
-        return NULL;
-    }
-}
+//                 currentPoint = nextPoint;
+//                 if (currentPoint[0] != NULL) {
+//                     nextPoint = currentPoint[0]->nextPoint;
+//                 }
+//             } while (currentPoint[0] != NULL && currentPoint[0] != path->firstPoint[0]);
+//         } else {
+//             return 0;
+//         }
+//     } else {
+//         return NULL;
+//     }
+// }
 
 int rotatePath(VectorPath* path, float degree, int originX, int originY) {
     if (path != NULL) {

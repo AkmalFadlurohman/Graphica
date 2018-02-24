@@ -59,6 +59,41 @@ int isCritPoint(int i, int j, unsigned int boundaryColor);
 // void swapPoint(VectorPoint* point1, VectorPoint* point2);
 // void bubbleSortPoint(VectorPoint** points, int size);
 
+void drawCircle(int x0, int y0, int radius)
+{
+    int x = radius-1;
+    int y = 0;
+    int dx = 1;
+    int dy = 1;
+    int err = dx - (radius << 1);
+
+    while (x >= y)
+    {
+        drawPixel(x0 + x, y0 + y, rgbaToInt(255,255,255,0));
+        drawPixel(x0 + y, y0 + x, rgbaToInt(255,255,255,0));
+        drawPixel(x0 - y, y0 + x, rgbaToInt(255,255,255,0));
+        drawPixel(x0 - x, y0 + y, rgbaToInt(255,255,255,0));
+        drawPixel(x0 - x, y0 - y, rgbaToInt(255,255,255,0));
+        drawPixel(x0 - y, y0 - x, rgbaToInt(255,255,255,0));
+        drawPixel(x0 + y, y0 - x, rgbaToInt(255,255,255,0));
+        drawPixel(x0 + x, y0 - y, rgbaToInt(255,255,255,0));
+
+        if (err <= 0)
+        {
+            y++;
+            err += dy;
+            dy += 2;
+        }
+        
+        if (err > 0)
+        {
+            x--;
+            dx += 2;
+            err += dx - (radius << 1);
+        }
+    }
+}
+
 int main() {
     // tak perlu disentuh lagi {
             int fbfd = 0;
@@ -105,76 +140,83 @@ int main() {
     viewport_x = 250;
     viewport_y = 250;
 
-    // Initialize vector objects
-    VectorPath* badan_bawah = createVectorPathFromFile("badan_bawah.txt");
-    if (badan_bawah == NULL) {
-        printf("Failed to load badan bawah\n");
-        return 0;
-    }
-    VectorPath* sayap_utama = createVectorPathFromFile("sayap.txt");
-    if (sayap_utama == NULL) {
-        printf("Failed to load sayap utama\n");
-        return 0;
-    }
-    VectorPath* sayap_belakang = createVectorPathFromFile("sayap_belakang.txt");
-    if (sayap_belakang == NULL) {
-        printf("Failed to load sayap belakang\n");
-        return 0;
-    }
-    VectorPath* baling_baling = createVectorPathFromFile("baling2.txt");
-    if (baling_baling == NULL) {
-        printf("Failed to load baling-baling\n");
-        return 0;
-    }
-
-    int count = 0;
-    int dx = 10;
-
-    dilatatePath(badan_bawah, 50, 50, 5);
-    dilatatePath(sayap_belakang, 50, 50, 5);
-    dilatatePath(sayap_utama, 50, 55, 5);
-    dilatatePath(baling_baling, 50, 60, 5);
-
     clearScreen();
-    rotatePath(baling_baling, 10,  50, 60);
+    drawCircle(viewport_x + 70, viewport_y + 80, 30);
+    drawCircle(viewport_x + 80, viewport_y + 93, 45);
+    drawCircle(viewport_x + 100, viewport_y + 100, 50);
+    drawCircle(viewport_x + 130, viewport_y + 100, 69);
+    drawCircle(viewport_x + 250, viewport_y + 250, 150);
+    render();
+  //   // Initialize vector objects
+  //   VectorPath* badan_bawah = createVectorPathFromFile("badan_bawah.txt");
+  //   if (badan_bawah == NULL) {
+  //       printf("Failed to load badan bawah\n");
+  //       return 0;
+  //   }
+  //   VectorPath* sayap_utama = createVectorPathFromFile("sayap.txt");
+  //   if (sayap_utama == NULL) {
+  //       printf("Failed to load sayap utama\n");
+  //       return 0;
+  //   }
+  //   VectorPath* sayap_belakang = createVectorPathFromFile("sayap_belakang.txt");
+  //   if (sayap_belakang == NULL) {
+  //       printf("Failed to load sayap belakang\n");
+  //       return 0;
+  //   }
+  //   VectorPath* baling_baling = createVectorPathFromFile("baling2.txt");
+  //   if (baling_baling == NULL) {
+  //       printf("Failed to load baling-baling\n");
+  //       return 0;
+  //   }
 
-    // Start animation and render
-   while (RUNNING) {
-       // clearViewPort(rgbaToInt(10,10,10,0));
+  //   int count = 0;
+  //   int dx = 10;
 
-        clearViewPort(rgbaToInt(135,206,250,0));
-        // translatePath(rightTriangle, dx, 10);
-        rotatePath(baling_baling, 10,  50, 60);
+  //   dilatatePath(badan_bawah, 50, 50, 5);
+  //   dilatatePath(sayap_belakang, 50, 50, 5);
+  //   dilatatePath(sayap_utama, 50, 55, 5);
+  //   dilatatePath(baling_baling, 50, 60, 5);
 
-        drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
-        drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
+  //   clearScreen();
+  //   rotatePath(baling_baling, 10,  50, 60);
 
-        drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
+  //   // Start animation and render
+  //  while (RUNNING) {
+  //      // clearViewPort(rgbaToInt(10,10,10,0));
 
-        drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
+  //       clearViewPort(rgbaToInt(135,206,250,0));
+  //       // translatePath(rightTriangle, dx, 10);
+  //       rotatePath(baling_baling, 10,  50, 60);
 
-        render();
-        char c;
-        scanf("%c", &c);
-        if(c == 'w' || c == 'W'){
-            viewport_y -= VIEWPORT_SPEED;
-        } else if(c == 'a' || c == 'A'){
-            viewport_x -= VIEWPORT_SPEED;
-        } else if(c == 's' || c == 'S'){
-            viewport_y += VIEWPORT_SPEED;
-        } else if(c == 'd' || c == 'D'){
-            viewport_x += VIEWPORT_SPEED;
-        } 
-        if(viewport_x < 0)
-            viewport_x = 0;
-        if(viewport_y < 0)
-            viewport_y = 0;
-        if(viewport_x > WORLD_WIDTH - viewport_width)
-            viewport_x = WORLD_WIDTH - viewport_width;
-        if(viewport_y > WORLD_HEIGHT - viewport_height)
-            viewport_y = WORLD_HEIGHT - viewport_height;
-        usleep(3000);
-  }
+  //       drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
+  //       drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
+
+  //       drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
+
+  //       drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
+
+  //       render();
+  //       char c;
+  //       scanf("%c", &c);
+  //       if(c == 'w' || c == 'W'){
+  //           viewport_y -= VIEWPORT_SPEED;
+  //       } else if(c == 'a' || c == 'A'){
+  //           viewport_x -= VIEWPORT_SPEED;
+  //       } else if(c == 's' || c == 'S'){
+  //           viewport_y += VIEWPORT_SPEED;
+  //       } else if(c == 'd' || c == 'D'){
+  //           viewport_x += VIEWPORT_SPEED;
+  //       } 
+  //       if(viewport_x < 0)
+  //           viewport_x = 0;
+  //       if(viewport_y < 0)
+  //           viewport_y = 0;
+  //       if(viewport_x > WORLD_WIDTH - viewport_width)
+  //           viewport_x = WORLD_WIDTH - viewport_width;
+  //       if(viewport_y > WORLD_HEIGHT - viewport_height)
+  //           viewport_y = WORLD_HEIGHT - viewport_height;
+  //       usleep(3000);
+  // }
 
 
     return 0;
@@ -452,34 +494,6 @@ int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int fi
 
    
     return 1;
-}
-
-VectorPath** clipVector(VectorPath* pathToClip, int viewport_x, int viewporty_y, int viewport_width, int viewport_height) {
-    if (path != NULL) {
-        if (path->firstPoint[0] != NULL && path->firstPoint[0]->nextPoint[0] != NULL) {
-            VectorPoint** currentPoint = path->firstPoint;
-            VectorPoint** nextPoint = path->firstPoint[0]->nextPoint;
-
-            double t=(22*degree)/(180*7);
-
-            do {
-                double x1 = currentPoint[0]->x;
-                double y1 = currentPoint[0]->y;
-
-                currentPoint[0]->x = ((x1-originX)*cos(t))-((y1-originY)*sin(t)) + originX;
-                currentPoint[0]->y = ((x1-originX)*sin(t))+((y1-originY)*cos(t)) +originY;
-
-                currentPoint = nextPoint;
-                if (currentPoint[0] != NULL) {
-                    nextPoint = currentPoint[0]->nextPoint;
-                }
-            } while (currentPoint[0] != NULL && currentPoint[0] != path->firstPoint[0]);
-        } else {
-            return 0;
-        }
-    } else {
-        return NULL;
-    }
 }
 
 int rotatePath(VectorPath* path, float degree, int originX, int originY) {

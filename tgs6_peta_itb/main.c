@@ -105,7 +105,7 @@ int main() {
     viewport_y = 250;
 
     clearScreen();
-    drawCircle(viewport_x + 250, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
+    drawCircle(viewport_x + 100, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
     drawCircle(viewport_x + 350, viewport_y + 250, 100, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
     drawCircle(viewport_x + 200, viewport_y + 200, 150, rgbaToInt(0,0,255,0), rgbaToInt(255,0,0,0));
     render();
@@ -622,8 +622,8 @@ void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned
                 unsigned int clearColor = rgbaToInt(0,0,0,0);
                 if (boundaryColor == clearColor || fillColor == clearColor) {
                     clearColor = rgbaToInt(255,255,255,255);
-                } else {
-                    
+                } else if (boundaryColor == rgbaToInt(255,255,255,255) || fillColor == rgbaToInt(255,255,255,255)) {
+                    clearColor = rgbaToInt(0,255,255,255);
                 }
                 circleFrame[i][j] = clearColor;
             }

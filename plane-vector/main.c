@@ -360,7 +360,7 @@ void drawPixel(int x, int y, unsigned int color) {
 }
 
 int isValidPoint(int x, int y) {
-    if (x >= viewport_x && x < viewport_width + viewport_x && y >=viewport_y && y < viewport_y + viewport_height)
+    if (x >= 0 && x < WORLD_WIDTH/SCALE && y >=0 && y < WORLD_HEIGHT/SCALE)
         return 1;
 
     return 0;

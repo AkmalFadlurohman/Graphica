@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include "VectorPoint.h"
 
 typedef struct VectorPath {
@@ -21,6 +22,8 @@ typedef struct VectorPath {
 VectorPath* createVectorPath(struct VectorPoint* _firstPoint);
 // Creates VectorPath based on external text file
 VectorPath* createVectorPathFromFile(char* fileName);
+// Creates VectorPath based on external text file
+VectorPath** createVectorPathFromSVG(char* fileName, int numOfPaths);
 // Frees memory of a VectorPath along with all the points it contains
 void freeVectorPath(VectorPath* vectorPath);
 // Updates the path's min and max

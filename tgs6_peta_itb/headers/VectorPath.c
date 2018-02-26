@@ -1,5 +1,7 @@
 #include "VectorPath.h"
 
+int VectorPath_debug = 0;
+
 int fpeek(FILE * const fp)
 {
   const int c = getc(fp);
@@ -120,6 +122,85 @@ VectorPath* createVectorPathFromFile(char* fileName) {
 	return newPath;
 }
 
+
+// asumsi selalu komplit
+VectorPath** createVectorPathFromSVG(char* fileName, int numOfPaths) {
+	FILE* externalFile;
+	externalFile = fopen(fileName, "r");
+
+	if (externalFile == NULL) {
+		printf("[VectorPath.c => createVectorPathFromSVG()] Failed to open external file\n");
+		return NULL;
+	}
+
+
+	VectorPath **arrOfPath = malloc(numOfPaths * sizeof(arrOfPath));
+	if (!arrOfPath) {
+		printf("[VectorPath.c => createVectorPathFromSVG()] Failed to allocate arrOfPath\n");
+	}
+
+	char *path = NULL;
+	size_t len = 0;
+	ssize_t read;
+	char *token;
+	float _x, _y, sumX, sumY;
+	int isFirstPoint = 1;
+	int pathCount = 0;
+
+	while ((read = getline(&path, &len, externalFile)) != -1) {
+		token = strtok(path, " ");
+		while (token != NULL) {
+			if (token[0] == ';') {
+				// Sudah titik terakhir => tutup polygon
+				enclosePath(arrOfPath[pathCount]);
+				pathCount++;
+				isFirstPoint = 1;
+			} else if (sscanf(token, "%f,%f", &_x, &_y) == 2) {
+				if (isFirstPoint == 1) {
+					// add new path here
+					arrOfPath[pathCount] = NULL;
+					sumX = _x;
+					sumY = _y;
+					arrOfPath[pathCount] = createVectorPath(createVectorPoint(sumX, sumY));
+
+					arrOfPath[pathCount]->maxX = sumX;
+					arrOfPath[pathCount]->maxY = sumY;
+					arrOfPath[pathCount]->minX = sumX;
+					arrOfPath[pathCount]->minY = sumY;
+
+					isFirstPoint = 0;
+				} else {
+					sumX += _x;
+					sumY += _y;
+
+					// update max min x, y
+					if (arrOfPath[pathCount]->maxX < sumX) {
+						arrOfPath[pathCount]->maxX = sumX;
+					}
+					if (arrOfPath[pathCount]->maxY < sumY) {
+						arrOfPath[pathCount]->maxY = sumY;
+					}
+
+					if (arrOfPath[pathCount]->minX > sumX) {
+						arrOfPath[pathCount]->minX = sumX;
+					}
+					if (arrOfPath[pathCount]->minY > sumY) {
+						arrOfPath[pathCount]->minY = sumY;
+					}
+
+					appendToPath(arrOfPath[pathCount], createVectorPoint(sumX, sumY));
+				}
+				arrOfPath[pathCount]->numOfPoints++;
+			}
+			token = strtok(NULL, " ");
+		}
+	}
+
+	fclose(externalFile);
+	free(path);
+	return arrOfPath;
+}
+
 void freeVectorPath(VectorPath* vectorPath) {
 	if (vectorPath != NULL) {
 		if (vectorPath->lastPoint[0] != NULL) {
@@ -131,7 +212,9 @@ void freeVectorPath(VectorPath* vectorPath) {
 			VectorPoint* nextToDelete = currentToDelete->nextPoint[0];
 
 			do {
-				printf("freeing this vector: (%.2f, %.2f)\n", currentToDelete->x, currentToDelete->y);
+				if (VectorPath_debug == 1) {
+					printf("freeing this vector: (%.2f, %.2f)\n", currentToDelete->x, currentToDelete->y);
+				}
 				freeVectorPoint(currentToDelete);
 				currentToDelete = nextToDelete;
 				if (currentToDelete != NULL) {
@@ -142,7 +225,10 @@ void freeVectorPath(VectorPath* vectorPath) {
 		}
 
 		free(vectorPath);
-		printf("successfully freed path\n");
+
+		if (VectorPath_debug == 1) {
+			printf("successfully freed path\n");
+		}
 	}
 }
 

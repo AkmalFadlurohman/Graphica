@@ -1,5 +1,7 @@
 #include "VectorPoint.h"
 
+int VectorPoint_debug = 0;
+
 VectorPoint* createVectorPoint(double _x, double _y) {
 	VectorPoint* newPoint = malloc(sizeof(VectorPoint));
 
@@ -44,7 +46,9 @@ void freeVectorPoint(VectorPoint* vectorPoint) {
 		}
 		free(vectorPoint);
 
-		printf("successfully freed point\n");
+		if (VectorPoint_debug == 1) {
+			printf("successfully freed point\n");
+		}
 	}
 }
 

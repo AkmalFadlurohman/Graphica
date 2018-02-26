@@ -104,17 +104,45 @@ int main() {
     viewport_x = 250;
     viewport_y = 250;
 
+    int numOfGedung = 32;
+    VectorPath** gedung = createVectorPathFromSVG("path1.txt", numOfGedung);
     clearScreen();
-    drawCircle(viewport_x + 100, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
-    drawCircle(viewport_x + 350, viewport_y + 250, 100, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
-    drawCircle(viewport_x + 200, viewport_y + 200, 150, rgbaToInt(0,0,255,0), rgbaToInt(255,0,0,0));
-    render();
+    // drawCircle(viewport_x + 100, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
+    // drawCircle(viewport_x + 350, viewport_y + 250, 100, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
+    // drawCircle(viewport_x + 200, viewport_y + 200, 150, rgbaToInt(0,0,255,0), rgbaToInt(255,0,0,0));
+    drawVectorPath(gedung[0], rgbaToInt(255,255,255,0), rgbaToInt(0,0,255,0), 0, 0);
+    drawVectorPath(gedung[1], rgbaToInt(255,225,255,0), rgbaToInt(255,0,0,0), 0, 0);
+    // drawVectorPath(gedung[2], rgbaToInt(255,245,255,0), rgbaToInt(0,255,0,0), 0, 0);
+    // render();
+    printPath(gedung[1]);
 
-  //   // Start animation and render
-  //  while (RUNNING) {
+
+
+   // Start animation and render
+   while (RUNNING) {
+        clearScreen();
+        for (int i = 0; i < numOfGedung; i++) {
+            drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,150 + i,0), 0, 0);
+            // freeVectorPath(gedung[i]);
+        }
+
+        render();
+
+        char c;
+        scanf("%c", &c);
+        if(c == 'w' || c == 'W'){
+            viewport_y -= VIEWPORT_SPEED;
+        } else if(c == 'a' || c == 'A'){
+            viewport_x -= VIEWPORT_SPEED;
+        } else if(c == 's' || c == 'S'){
+            viewport_y += VIEWPORT_SPEED;
+        } else if(c == 'd' || c == 'D'){
+            viewport_x += VIEWPORT_SPEED;
+        }
   
-  // }
+    }
 
+    free(gedung);
 
     return 0;
 }
@@ -373,8 +401,7 @@ int drawVectorPath(VectorPath* path, unsigned int boundaryColor, unsigned int fi
 
    fillVector(path, fillColor, boundaryColor, offsetX, offsetY);
 
-   
-    return 1;
+   return 1;
 }
 
 int rotatePath(VectorPath* path, float degree, int originX, int originY) {

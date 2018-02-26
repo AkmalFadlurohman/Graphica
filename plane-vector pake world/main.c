@@ -164,9 +164,10 @@ int main() {
 
         clearViewPort(rgbaToInt(135,206,250,0));
         rotatePath(baling_baling, 10,  50, 60);
+
+   //     drawVectorPathClipping(segitiga, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 20, 20);
         drawVectorPathClipping(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
         drawVectorPathClipping(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
-
         drawVectorPathClipping(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
         drawVectorPathClipping(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
 

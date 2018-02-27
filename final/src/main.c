@@ -1,36 +1,31 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "mouse.h"
+
+// Draw mouse pointer in coordinat x,y
+void drawPointer(int x, int y);
+
+const char *device_monitor = "/dev/gb0";
 
 int main() {
-    int fd, bytes;
-    unsigned char data[3];
-
-    const char *pDevice = "/dev/input/mice";
-
-    // Open Mouse
-    fd = open(pDevice, O_RDWR);
-    if(fd == -1) {
-        printf("ERROR Opening %s\n", pDevice);
-        return -1;
-    }
-
-    int left, middle, right;
-    signed char x, y;
-    while (1) {
-        // Read Mouse     
-        bytes = read(fd, data, sizeof(data));
-
-        if(bytes > 0) {
-            left = data[0] & 0x1;
-            right = data[0] & 0x2;
-            middle = data[0] & 0x4;
-
-            x = data[1];
-            y = data[2];
-            printf("x=%d, y=%d, left=%d, middle=%d, right=%d\n", x, y, left, middle, right);
-        }   
-    }
+    Mouse *mouse = initMouse(500,500);
     
+    while (1) {
+        scanMouse(mouse);
+        if(mouse->isEvent) {
+            printf("x=%d, y=%d, left=%d, right=%d\n", 
+                mouse->positionX, 
+                mouse->positionY, 
+                mouse->isLeftClick, 
+                mouse->isRightClick);
+        } 
+    }
+
     return 0; 
+}
+
+
+void drawPointer(int x, int y) {
+
 }

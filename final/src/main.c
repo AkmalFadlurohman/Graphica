@@ -10,6 +10,9 @@ const char *device_monitor = "/dev/gb0";
 
 int main() {
     Mouse *mouse = initMouse(500,500);
+    if (mouse == 0) {
+        return 0;
+    }
     
     while (1) {
         scanMouse(mouse);

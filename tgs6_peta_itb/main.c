@@ -153,6 +153,9 @@ int main(int argc, char **argv) {
                     drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(100 + i * 5,0,0,0), 0, 0);
                 }
             }
+
+            drawCircle(340, 580, 10, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
+            drawCircle(340, 470, 15, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
         }
 
         if (renderRoad == 1) {

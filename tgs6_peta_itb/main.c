@@ -143,6 +143,7 @@ int main(int argc, char **argv) {
    // Start animation and render
    while (RUNNING) {
         clearScreen();
+        clearViewPort(rgbaToInt(25,25,25,25));
         if (renderBuilding == 1) {
             for (int i = 0; i < numOfGedung; i++) {
                 if (i % 3 == 0) {
@@ -184,7 +185,7 @@ int main(int argc, char **argv) {
 }
 void clearScreen(){
     long int location;
-    int color = rgbaToInt(0,0,0,0);
+    int color = rgbaToInt(10,10,10,0);
     for(int x = 0; x < vinfo.xres; x++){
         for(int y = 0; y < vinfo.yres; y++){
             location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) + (y+vinfo.yoffset) * finfo.line_length;

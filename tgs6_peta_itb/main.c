@@ -120,30 +120,23 @@ int main() {
     int numOfGedung = 25;
     VectorPath** gedung = createVectorPathFromSVG("path1.txt", numOfGedung);
     VectorPath** jalan = createVectorPathFromSVG("path2.txt", 1);
-    // clearScreen();
     // drawCircle(viewport_x + 100, viewport_y + 250, 150, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
     // drawCircle(viewport_x + 350, viewport_y + 250, 100, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
     // drawCircle(viewport_x + 200, viewport_y + 200, 150, rgbaToInt(0,0,255,0), rgbaToInt(255,0,0,0));
-    // drawVectorPath(gedung[0], rgbaToInt(255,255,255,0), rgbaToInt(0,0,255,0), 0, 0);
-    // drawVectorPath(gedung[1], rgbaToInt(255,225,255,0), rgbaToInt(255,0,0,0), 0, 0);
-    // drawVectorPath(gedung[2], rgbaToInt(255,245,255,0), rgbaToInt(0,255,0,0), 0, 0);
-    // render();
-    // for (int i = 0; i < numOfGedung; i++) {
-    //     printPath(gedung[i]);
-    //     // freeVectorPath(gedung[i]);
-    // }
-
-
 
    // Start animation and render
    while (RUNNING) {
         clearScreen();
         for (int i = 0; i < numOfGedung; i++) {
-            drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,150 + i,0), 0, 0);
-            // drawVectorPathClipping(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,150 + i,0), 0, 0);
-            // freeVectorPath(gedung[i]);
+            if (i % 3 == 0) {
+                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,100 + i * 5,0), 0, 0);
+            } else if (i % 3 == 1) {
+                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,100 + i * 5,0,0), 0, 0);
+            } else {
+                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(100 + i * 5,0,0,0), 0, 0);
+            }
         }
-        drawVectorPath(jalan[0], rgbaToInt(255,255,199,0), rgbaToInt(200,200,200,0), 0, 0);
+        drawVectorPath(jalan[0], rgbaToInt(255,255,199,0), rgbaToInt(100,100,100,0), 0, 0);
 
         render();
 

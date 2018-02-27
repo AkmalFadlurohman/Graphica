@@ -71,7 +71,23 @@ int isCritPoint(int i, int j, unsigned int boundaryColor);
 void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned int fillColor);
 void fillCircle(unsigned int boundaryColor, unsigned int fillColor);
 
-int main() {
+int main(int argc, char **argv) {
+    int renderRoad = 1;
+    int renderBuilding = 1;
+
+    if (argc > 3) {
+        printf("Too many arguments\n");
+        return -1;
+    } else {
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-noR") == 0) {
+                renderRoad = 0;
+            } else if (strcmp(argv[i], "-noB") == 0) {
+                renderBuilding = 0;
+            }
+        }
+    }
+
     // tak perlu disentuh lagi {
             int fbfd = 0;
             long int screensize = 0;
@@ -127,16 +143,21 @@ int main() {
    // Start animation and render
    while (RUNNING) {
         clearScreen();
-        for (int i = 0; i < numOfGedung; i++) {
-            if (i % 3 == 0) {
-                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,100 + i * 5,0), 0, 0);
-            } else if (i % 3 == 1) {
-                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,100 + i * 5,0,0), 0, 0);
-            } else {
-                drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(100 + i * 5,0,0,0), 0, 0);
+        if (renderBuilding == 1) {
+            for (int i = 0; i < numOfGedung; i++) {
+                if (i % 3 == 0) {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,100 + i * 5,0), 0, 0);
+                } else if (i % 3 == 1) {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,100 + i * 5,0,0), 0, 0);
+                } else {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(100 + i * 5,0,0,0), 0, 0);
+                }
             }
         }
-        drawVectorPath(jalan[0], rgbaToInt(255,255,199,0), rgbaToInt(100,100,100,0), 0, 0);
+
+        if (renderRoad == 1) {
+            drawVectorPath(jalan[0], rgbaToInt(255,255,199,0), rgbaToInt(100,100,100,0), 0, 0);
+        }
 
         render();
 

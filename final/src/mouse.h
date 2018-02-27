@@ -13,6 +13,7 @@ typedef struct Mouse {
     int screen_max_x;       // screen width
     int screen_max_y;       // screen height
 
+    int speed;
     int isEvent;            // isEvent is active if current state is different from previous
     int positionX;          // mouse current position in x coordinate
     int positionY;          // mouse current position in y coordinate
@@ -20,7 +21,7 @@ typedef struct Mouse {
     int isLeftClick;
 } Mouse;
 
-Mouse* initMouse(int screen_max_x, int screen_max_y) {
+Mouse* initMouse(int screen_max_x, int screen_max_y, int speed) {
     Mouse* m = (Mouse*) malloc(sizeof(Mouse));
     
     m->fd = open(device_mouse, O_RDWR);
@@ -31,6 +32,7 @@ Mouse* initMouse(int screen_max_x, int screen_max_y) {
 
     m->screen_max_x = screen_max_x;
     m->screen_max_y = screen_max_y;
+    m->speed = speed;
 
     m->isEvent = 0;
     m->positionX = 0;
@@ -57,14 +59,19 @@ void scanMouse(Mouse* m) {
         y = data[2];
         
         // printf("x=%d, y=%d, left=%d, middle=%d, right=%d\n", x, y, left, middle, right);
-        if (x < 0 && m->positionX > 0)
-            m->positionX--;
-        if (x > 0 && m->positionX < m->screen_max_x)
-            m->positionX++;
-        if (y > 0 && m->positionY > 0)
-            m->positionY--;
-        if (y < 0 && m->positionY < m->screen_max_y)
-            m->positionY++;
+        if (x < 0)
+            m->positionX -= m->speed;
+        if (x > 0)
+            m->positionX += m->speed;
+        if (y > 0)
+            m->positionY -= m->speed;
+        if (y < 0)
+            m->positionY += m->speed;
+
+        if (m->positionY < 0) m->positionY = 0;
+        if (m->positionX < 0) m->positionX = 0;
+        if (m->positionY > m->screen_max_y) m->positionY = m->screen_max_y;
+        if (m->positionX > m->screen_max_x) m->positionX = m->screen_max_x;
 
         if (right > 0) m->isRightClick = 1; else m->isRightClick = 0;
         if (left > 0) m->isLeftClick = 1; else m->isLeftClick = 0;

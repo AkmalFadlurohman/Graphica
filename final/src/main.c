@@ -2,14 +2,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "mouse.h"
-
-// Draw mouse pointer in coordinat x,y
-void drawPointer(int x, int y);
-
-const char *device_monitor = "/dev/gb0";
+#include "screen.h"
 
 int main() {
-    Mouse *mouse = initMouse(500,500);
+    Screen *screen = initScreen();
+    if (screen == 0) {
+        return 0;
+    }
+
+    Mouse *mouse = initMouse(screen->width-1, screen->height-1, 5);
     if (mouse == 0) {
         return 0;
     }
@@ -17,18 +18,10 @@ int main() {
     while (1) {
         scanMouse(mouse);
         if(mouse->isEvent) {
-            printf("x=%d, y=%d, left=%d, right=%d\n", 
-                mouse->positionX, 
-                mouse->positionY, 
-                mouse->isLeftClick, 
-                mouse->isRightClick);
+            system("clear");
+            drawPointer(screen, mouse->positionX, mouse->positionY);
         } 
     }
 
     return 0; 
-}
-
-
-void drawPointer(int x, int y) {
-
 }

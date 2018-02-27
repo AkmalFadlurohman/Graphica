@@ -21,7 +21,6 @@ typedef struct Screen {
     struct fb_fix_screeninfo finfo;
 } Screen;
 
-
 Screen* initScreen() {
     Screen* s = (Screen*) malloc(sizeof(Screen));
 
@@ -78,15 +77,22 @@ unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }
 
-
 void drawPointer(Screen* s, int x, int y) {
-    int i = x; int j = y;
-    int ie = x+cursor_size; int je = j+cursor_size;
-    if (ie >= s->width) ie = s->width-1;
-    if (je >= s->height) je = s->height-1;
-    for (int i = x; i < ie; i++)
-        for (int j = y; j < je; j++)
-            drawPixel(s, i, j, rgbaToInt(255,0,0,0));
+    char* pointer = "100000000000011000000000001110000000000111100000000011111000000001111110000000111111100000011111111000001111111110000111111111100011111111111001111111111110111111111111111111111100001111011111000111001111100011000011111001000001111100000000011111000000001111100000000011111000000001111100000000011100000000000100";
+    int width = 13; int height = 24;
+    int initx = x;
+
+    for (int i = 0; i < width*height; i++) {
+        if (pointer[i]=='1')
+            drawPixel(s, x, y, rgbaToInt(255,255,255,0));
+        x++;
+        if (x-initx == width) {
+            x = initx;
+            y++;
+            if (y > s->height-1)
+                return;
+        }
+    }
 }
 
 #endif

@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
                 mouse->positionY = window_y;
             }
             if (mouse->isLeftClick) {
-                // showVecLetters(bitmapFont, mouse->positionY);
+                showVecLetters(bitmapFont, mouse->positionY);
                 show_plane1(bitmapFont, mouse->positionY);
                 show_plane2(bitmapFont, mouse->positionY);
                 show_plane3(bitmapFont, mouse->positionY);
@@ -103,46 +103,47 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
     int lowerBound = window_y + 2*line_height_5 + line_height_3;
     
     if (mouse_y < lowerBound && mouse_y > upperBound) {
-        clearScreen();
-        clearViewPort(rgbaToInt(0,0,0,0));
+
         
-        render();
-
         loadLetters("assets/VecLetterSpec.txt");    
-
-        char input[100];
-        printf("%s: ", "Masukkan input");
-        scanf("%99[0-9a-zA-Z ]", input);
-
-        for(int i = 0; input[i]; i++) {
-            input[i] = toupper(input[i]);
-        }
-
-        for (int i=0; i<vinfo.yres/17; i++) {
-          printf("\n");
-        }
-        printf("\n");
-
+        clearViewPort(rgbaToInt(0,0,0,0));
+        system("/bin/stty raw");
         int offsetX = MARGIN_HORIZONTAL;
         int offsetY = MARGIN_VERTICAL;
-        system("clear");
+        char input = 0;
+        while (RUNNING && (input=getchar()) != 27) {
 
-        COLOR = rgbaToInt(255, 225, 0, 0);
-        BORDER_COLOR = rgbaToInt(255, 0, 0, 0);
-        
-        for (int i=0;i<strlen(input);i++) {
-            if (input[i] == ' ') {
+            clearScreen();  
+            // char input[100];
+            // printf("%s: ", "Masukkan input");
+            // scanf("%99[0-9a-zA-Z .]", input);
+            // if (input[strlen(input)-1] == '.') {
+            //     return;
+            // }
+            // for(int i = 0; input[i]; i++) {
+            //     input[i] = toupper(input[i]);
+            // }
+
+            // for (int i=0; i<vinfo.yres/17; i++) {
+              // printf("\n");
+            // }
+            // printf("\n");
+
+            input = toupper(input);
+            
+            // system("clear");
+
+            COLOR = rgbaToInt(255, 225, 0, 0);
+            BORDER_COLOR = rgbaToInt(255, 0, 0, 0);
+            
+            if (input == ' ') {
                 offsetX += MARGIN_HORIZONTAL*4;
                 continue;
             }
-            drawLetters(input[i], &offsetX, &offsetY);
-        }
-
-        char c = 0;
-        while (RUNNING && c != ESC) {
+            drawLetters(input, &offsetX, &offsetY);
             render();
-            scanf("%c", &c);
         }
+        system("/bin/stty cooked");
     }
 
     return;

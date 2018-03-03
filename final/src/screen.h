@@ -8,6 +8,7 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include "mouse.h"
 
 const char *device_screen = "/dev/fb0";
 const int cursor_size = 10;
@@ -77,22 +78,55 @@ unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }
 
-void drawPointer(Screen* s, int x, int y) {
+void drawPointer(Screen* s, Mouse* m) {
     char* pointer = "100000000000011000000000001110000000000111100000000011111000000001111110000000111111100000011111111000001111111110000111111111100011111111111001111111111110111111111111111111111100001111011111000111001111100011000011111001000001111100000000011111000000001111100000000011111000000001111100000000011100000000000100";
+    int x = m->positionX; int y = m->positionY;
     int width = 13; int height = 24;
-    int initx = x;
+    int initx = x, inity = y;
 
-    for (int i = 0; i < width*height; i++) {
-        if (pointer[i]=='1')
-            drawPixel(s, x, y, rgbaToInt(255,255,255,0));
-        x++;
-        if (x-initx == width) {
-            x = initx;
-            y++;
-            if (y > s->height-1)
-                return;
+    for (x = initx; x < initx+width; x++) {
+        if (x > m->screen_max_x)
+            continue;
+        for (y = inity; y < inity+height; y++) {
+            if (y > m->screen_max_y)
+                break;
+            if (pointer[(y-inity)*width+(x-initx)]=='1')
+                drawPixel(s, x, y, rgbaToInt(255,255,255,0));    
         }
     }
+}
+
+// drawWindow will draw square box in screen 
+void drawWindow(Screen* s, int width, int height) {
+    int x = (s->width - width) / 2;
+    int y = (s->height - height) / 2;
+    int white = rgbaToInt(255,255,255,255);
+
+    for (int i = x-1; i < x+width+2; i++) {
+        for (int j = -1; j < 2; j++) {
+            drawPixel(s, i, y+j, white);
+            drawPixel(s, i, y+height+j, white);
+        }
+    }
+
+    for (int j = y; j < y+height; j++) {
+        for (int i = -1; i < 2; i++) {
+            drawPixel(s, x+i, j, white);
+            drawPixel(s, x+width+i, j, white);
+        }
+    }
+
+}
+
+void clearWindow(Screen *s, int width, int height) {
+    int x = (s->width - width) / 2;
+    int y = (s->height - height) / 2;
+    int black = rgbaToInt(0,0,0,0);
+
+    for (int i = x+2; i < x+width-1; i++)
+        for (int j = y+2; j < y+height-1; j++)
+            drawPixel(s, i, j, black);
+
 }
 
 #endif

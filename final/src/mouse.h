@@ -10,8 +10,10 @@ const char *device_mouse = "/dev/input/mice";
 
 typedef struct Mouse {
     int fd;                 // required for reading mouse event data
-    int screen_max_x;       // screen width
-    int screen_max_y;       // screen height
+    int screen_max_x;
+    int screen_max_y;
+    int screen_min_x;
+    int screen_min_y;
 
     int speed;
     int isEvent;            // isEvent is active if current state is different from previous
@@ -21,7 +23,7 @@ typedef struct Mouse {
     int isLeftClick;
 } Mouse;
 
-Mouse* initMouse(int screen_max_x, int screen_max_y, int speed) {
+Mouse* initMouse(int screen_min_x, int screen_min_y, int screen_max_x, int screen_max_y, int speed) {
     Mouse* m = (Mouse*) malloc(sizeof(Mouse));
     
     m->fd = open(device_mouse, O_RDWR);
@@ -32,11 +34,13 @@ Mouse* initMouse(int screen_max_x, int screen_max_y, int speed) {
 
     m->screen_max_x = screen_max_x;
     m->screen_max_y = screen_max_y;
+    m->screen_min_x = screen_min_x;
+    m->screen_min_y = screen_min_y;
     m->speed = speed;
 
     m->isEvent = 0;
-    m->positionX = 0;
-    m->positionY = 0;
+    m->positionX = screen_min_x;
+    m->positionY = screen_min_y;
     m->isRightClick = 0;
     m->isLeftClick = 0;
 
@@ -68,8 +72,8 @@ void scanMouse(Mouse* m) {
         if (y < 0)
             m->positionY += m->speed;
 
-        if (m->positionY < 0) m->positionY = 0;
-        if (m->positionX < 0) m->positionX = 0;
+        if (m->positionY < m->screen_min_y) m->positionY = m->screen_min_y;
+        if (m->positionX < m->screen_min_x) m->positionX = m->screen_min_x;
         if (m->positionY > m->screen_max_y) m->positionY = m->screen_max_y;
         if (m->positionX > m->screen_max_x) m->positionX = m->screen_max_x;
 

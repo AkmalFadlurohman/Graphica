@@ -1,6 +1,6 @@
 #include "headers/fbp.h"
 
-#define MOUSE_SPEED 4
+#define MOUSE_SPEED 12
 
 const char *template_bitmap_font = "data/template_bitmap_font.io";
 
@@ -158,6 +158,56 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
     return;
 }
 
+struct termios orig_termios;
+
+void reset_terminal_mode()
+{
+    tcsetattr(0, TCSANOW, &orig_termios);
+}
+
+void set_conio_terminal_mode()
+{
+    struct termios new_termios;
+
+    /* take two copies - one for now, one for later */
+    tcgetattr(0, &orig_termios);
+    memcpy(&new_termios, &orig_termios, sizeof(new_termios));
+
+    /* register cleanup handler, and set the new terminal mode */
+    atexit(reset_terminal_mode);
+    cfmakeraw(&new_termios);
+    tcsetattr(0, TCSANOW, &new_termios);
+}
+
+int kbhit()
+{
+    struct timeval tv = { 0L, 0L };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds);
+    return select(1, &fds, NULL, NULL, &tv);
+}
+
+int getch()
+{
+    int r;
+    unsigned char c;
+    if ((r = read(0, &c, sizeof(c))) < 0) {
+        return r;
+    } else {
+        return c;
+    }
+}
+
+// int main(int argc, char *argv[])
+// {
+
+//     while (!kbhit()) {
+//          do some work 
+//     }
+//     (void)getch(); /* consume the character */
+// }
+
 void show_plane1(BitmapFont* bf, int mouse_y) {
     int line_height_5 = bf->char_height*5;
     int line_height_3 = bf->char_height*3;
@@ -178,8 +228,9 @@ void show_plane1(BitmapFont* bf, int mouse_y) {
     	
     	system("clear");
 
-        int stop = 0;
-        while (RUNNING && stop == 0) {
+        set_conio_terminal_mode();
+        int ditekan = 0;
+        while (RUNNING && !ditekan) {
             plane->posX--;
             if (plane->posX < -plane->width) {
                 plane->posX = vinfo.xres;
@@ -199,7 +250,15 @@ void show_plane1(BitmapFont* bf, int mouse_y) {
             delay++;
 
             usleep(3000);
+            if (kbhit()) {
+                int a;
+                a = getch();
+                if (a == 27) {
+                    ditekan = 1;
+                }
+            }
         }
+        reset_terminal_mode();
         f_freeImage(plane);
     }
 }
@@ -230,7 +289,9 @@ void show_plane2(BitmapFont* bf, int mouse_y) {
         float degree = 10;
         float wingDeg = 0;
         float zoom = 1;
-        while (RUNNING) {
+        set_conio_terminal_mode();
+        int ditekan = 0;        
+        while (RUNNING && !ditekan) {
             clearScreen();
             clearViewPort(rgbaToInt(135,206,250,0));
             wingDeg+=10;
@@ -294,7 +355,15 @@ void show_plane2(BitmapFont* bf, int mouse_y) {
             drawVector('D', posX, posY, rgbaToInt(0,255,255,0), rgbaToInt(0,150,150,0),wingDeg, 50, 60, zoom);
             render();
             usleep(30000);
-       }
+            if (kbhit()) {
+                int a;
+                a = getch();
+                if (a == 27) {
+                    ditekan = 1;
+                }
+            }
+        }
+        reset_terminal_mode();
     }
 }
 
@@ -353,8 +422,22 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
         // Start animation and render
         system("/bin/stty raw");
 
-        while (RUNNING && (c=getchar()) != 27) {
+        clearViewPort(rgbaToInt(135,206,250,0));
+        rotatePath(baling_baling, 10,  50, 60);
 
+        // drawVectorPathClipping(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
+        // drawVectorPathClipping(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
+        // drawVectorPathClipping(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
+        // drawVectorPathClipping(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
+
+        drawVectorPath(sayap_belakang, rgbaToInt(0,0,0,0),rgbaToInt(107,107,107,0), 500, 500);
+        drawVectorPath(badan_bawah, rgbaToInt(2,2,2,0),rgbaToInt(48,60,165,0), 500, 500);
+        drawVectorPath(sayap_utama, rgbaToInt(1,1,1,0),rgbaToInt(196,0,0,0), 500, 500);
+        drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
+
+        render();
+
+        while (RUNNING && (c=getchar()) != 27) {
             clearViewPort(rgbaToInt(135,206,250,0));
             rotatePath(baling_baling, 10,  50, 60);
 
@@ -388,11 +471,6 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
                 dilatatePath(sayap_belakang, 50, 50, 0.9);
                 dilatatePath(sayap_utama, 50, 55, 0.9);
                 dilatatePath(baling_baling, 50, 60, 0.9);
-            }  else if (c == ESC) {
-                freeVectorPath(sayap_belakang);
-                freeVectorPath(badan_bawah);
-                freeVectorPath(sayap_utama);
-                freeVectorPath(baling_baling);
             }
 
             if(viewport_x < 0)
@@ -405,6 +483,10 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
                 viewport_y = WORLD_HEIGHT - viewport_height;
             usleep(3000);
         }
+        freeVectorPath(sayap_belakang);
+        freeVectorPath(badan_bawah);
+        freeVectorPath(sayap_utama);
+        freeVectorPath(baling_baling);
         system("/bin/stty cooked");
     }
 }

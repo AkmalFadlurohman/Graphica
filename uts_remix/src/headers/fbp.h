@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <sys/ioctl.h>
 #include <math.h>
+#include <sys/select.h>
+#include <termios.h>
 #include "VectorPath.h"
 #include "VecLetter.h"
 #include "f_image.h"

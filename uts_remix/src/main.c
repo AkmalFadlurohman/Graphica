@@ -508,8 +508,36 @@ void openMap(BitmapFont* bf, int mouse_y) {
         VectorPath** gedung = createVectorPathFromSVG("assets/map_buildings.txt", numOfGedung);
         VectorPath** jalan = createVectorPathFromSVG("assets/map_roads.txt", 1);
 
-    	char c = 0;
-    	while (RUNNING && c != ESC) {
+        clearScreen();
+        clearViewPort(rgbaToInt(25,25,25,25));
+        if (renderBuilding == 1) {
+            for (int i = 0; i < numOfGedung; i++) {
+                if (i % 3 == 0) {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,0,100 + i * 5,0), 0, 0);
+                } else if (i % 3 == 1) {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(0,100 + i * 5,0,0), 0, 0);
+                } else {
+                    drawVectorPath(gedung[i], rgbaToInt(255,255,200 + i,0), rgbaToInt(100 + i * 5,0,0,0), 0, 0);
+                }
+            }
+
+            drawCircle(340, 580, 10, rgbaToInt(255,0,0,0), rgbaToInt(0,0,255,0));
+            drawCircle(340, 470, 15, rgbaToInt(9,255,0,0), rgbaToInt(0,255,0,0));
+        }
+
+        if (renderRoad == 1) {
+            drawVectorPath(jalan[0], rgbaToInt(255,255,199,0), rgbaToInt(100,100,100,0), 0, 0);
+        }
+
+        render();
+
+        char c = 0;
+        // Start animation and render
+        system("/bin/stty raw");
+    	while (RUNNING && (c=getchar()) != 27) {
+            if (c != 'w' && c != 'W' && c != 'A' && c != 'a' && c != 'S' && c != 's' && c != 'D' && c != 'd') {
+                continue;
+            }
     		clearScreen();
             clearViewPort(rgbaToInt(25,25,25,25));
             if (renderBuilding == 1) {
@@ -533,7 +561,6 @@ void openMap(BitmapFont* bf, int mouse_y) {
 
             render();
 
-            scanf("%c", &c);
             if(c == 'w' || c == 'W'){
                 viewport_y -= VIEWPORT_SPEED;
             } else if(c == 'a' || c == 'A'){
@@ -542,16 +569,16 @@ void openMap(BitmapFont* bf, int mouse_y) {
                 viewport_y += VIEWPORT_SPEED;
             } else if(c == 'd' || c == 'D'){
                 viewport_x += VIEWPORT_SPEED;
-            } else if (c == ESC) {
-            	for (int i = 0; i < numOfGedung; i++) {
-            		freeVectorPath(gedung[i]);
-                }
-            	freeVectorPath(jalan[0]);
-
-            	free(gedung);
-            	free(jalan);
             }
     	}
+        for (int i = 0; i < numOfGedung; i++) {
+            freeVectorPath(gedung[i]);
+        }
+        freeVectorPath(jalan[0]);
+
+        free(gedung);
+        free(jalan);
+        system("/bin/stty cooked");
     }
 
 }

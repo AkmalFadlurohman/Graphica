@@ -162,11 +162,11 @@ void drawObject(struct f_Image* obj, int dir /*0 = right, 1 = left*/){
         for (int j = 0; j < obj->width ; j++){
                 if(dir == 0){
                     if(j+obj->posX < vinfo.xres && j+obj->posX >= 0 && i+obj->posY <vinfo.yres && i+obj->posY  >=0)
-                        drawPixel(j+obj->posX,i+obj->posY,obj->bitmap[i*obj->width+j]->color);
+                        f_drawPixel(j+obj->posX,i+obj->posY,obj->bitmap[i*obj->width+j]->color);
 
                 } else{
                    if(obj->width-j + obj->posX < vinfo.xres && obj->width-j + obj->posX >= 0 && i +obj->posY <vinfo.yres && i +obj->posY >=0)
-                        drawPixel(obj->width-j + obj->posX,i +obj->posY,obj->bitmap[i*obj->width+j]->color);
+                        f_drawPixel(obj->width-j + obj->posX,i +obj->posY,obj->bitmap[i*obj->width+j]->color);
                 }
             
         }

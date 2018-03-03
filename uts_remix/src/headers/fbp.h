@@ -14,7 +14,6 @@
 #include "VecLetter.h"
 #include "f_image.h"
 
-
 #define SCALE 1
 #define WORLD_WIDTH 2000
 #define WORLD_HEIGHT 2000
@@ -33,6 +32,33 @@
 
 #define ESC 27
 
+// Mouse structure
+typedef struct Mouse {
+    int fd;                 // required for reading mouse event data
+    int screen_max_x;
+    int screen_max_y;
+    int screen_min_x;
+    int screen_min_y;
+
+    int speed;
+    int isEvent;            // isEvent is active if current state is different from previous
+    int positionX;          // mouse current position in x coordinate
+    int positionY;          // mouse current position in y coordinate
+    int isRightClick;
+    int isLeftClick;
+} Mouse;
+
+// Bitmap Font
+typedef struct BitmapFont {
+    int char_height;    // Character height in pixel, same for all char
+    int num_of_char;    // Number of available char
+    char *char_index;   // Array of char
+    int *char_width;    // Array of char size, can be accessed with index
+    char **font;        // Map of pixel for every character
+} BitmapFont;
+
+// Final Functions
+void drawPointer(Mouse* m);
 
 //Game World
 extern unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
@@ -116,4 +142,22 @@ void drawCircle(int x0, int y0, int radius, unsigned int boundaryColor, unsigned
 int drawVector(char c, int x, int y, unsigned int border_color, unsigned int fill_color, float degree, int originX, int originY, float zoom);
 int isCritPoint(int i, int j, unsigned int boundaryColor);
 void fillPlane(struct VecLetter* vecletter, unsigned int color, unsigned int boundaryColor, int minX, int minY, int maxX, int maxY);
+
+
+// Bitfont
+
+BitmapFont* initBitmapFont(const char *filename);
+
+int getBitmapCharIndex(BitmapFont *bf, char c);
+
+int drawBitmapChar(BitmapFont *bf, int x, int y, char c, int scale);
+
+void drawBitmapString(BitmapFont *bf, int x, int y, char* text, int scale);
+
+// Mouse
+Mouse* initMouse(int screen_min_x, int screen_min_y, int screen_max_x, int screen_max_y, int speed);
+
+void scanMouse(Mouse* m);
+
+
 #endif

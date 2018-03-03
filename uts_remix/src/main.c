@@ -1,20 +1,60 @@
 #include "headers/fbp.h"
 
+#define MOUSE_SPEED 6
+
+const char *template_bitmap_font = "data/template_bitmap_font.io";
+
+void drawMainMenu(BitmapFont* bf, int x, int y);
 void show_plane1();
 void show_plane2();
 void show_plane3();
 void openMap();
 
+int window_x;
+int window_y;
+int max_window_x;
+int max_window_y;
+
 int main(int argc, char **argv) {
 	initializeFBP();
-
-	critColor = rgbaToInt(250,250,250,0);
-    frameColor = rgbaToInt(247,247,247,0);
     viewport_x = 200;
     viewport_y = 500;
 
+    window_x = (vinfo.xres - viewport_width) / 2;
+    window_y = (vinfo.yres - viewport_height) / 2;
+    max_window_x = window_x + viewport_width;
+    max_window_y = window_y + viewport_height;
+
+    Mouse *mouse = initMouse(window_x, window_y, max_window_x, max_window_y, MOUSE_SPEED);
+    if (mouse == 0) {
+        return 0;
+    }
+
+    BitmapFont* bitmapFont = initBitmapFont(template_bitmap_font);
+
+    critColor = rgbaToInt(250,250,250,0);
+    frameColor = rgbaToInt(247,247,247,0);
+
+    while(RUNNING) {
+        scanMouse(mouse);
+        if(mouse->isEvent) {
+            clearScreen();
+            clearViewPort(rgbaToInt(25,25,25,25));
+            drawMainMenu(bitmapFont, window_x, window_y);
+            drawPointer(mouse);
+            
+            if (mouse->isRightClick)
+                printf("Right click event\n");
+            if (mouse->isLeftClick) {
+                // printf("Left click event\n");
+                // show_plane1(bitmapFont, mouse->positionY);
+                // f_drawPixel(mouse->positionX, mouse->positionY, rgbaToInt(255,255,255,0));
+            }
+        }
+    }
+
     // show_plane1(); // tugas 2
-    show_plane2(); // tugas 4
+    // show_plane2(); // tugas 4
     // show_plane3(); // tugas 5
     // openMap(); // tugas 6
     printf("bye!\n");
@@ -23,46 +63,63 @@ int main(int argc, char **argv) {
     close(fbfd);
 }
 
-void mainMenu() {
-	
+void drawMainMenu(BitmapFont* bf, int x, int y) {
+    int line_height_5 = bf->char_height*5;
+    int line_height_3 = bf->char_height*3;
+    drawBitmapString(bf, x, y, "MENU UTAMA", 5);
+    drawBitmapString(bf, x, y + 2*line_height_5, "1. FONT", 3);
+    drawBitmapString(bf, x, y + 2*line_height_5 + line_height_3, "2. ANIMASI PESAWAT 1", 3);
+    drawBitmapString(bf, x, y + 2*line_height_5 + 2*line_height_3, "3. ANIMASI PESAWAT 2", 3);
+    drawBitmapString(bf, x, y + 2*line_height_5 + 3*line_height_3, "4. ANIMASI PESAWAT 3", 3);
+    drawBitmapString(bf, x, y + 2*line_height_5 + 4*line_height_3, "5. PETA ITB", 3);
+    drawBitmapString(bf, x, y + 2*line_height_5 + 6*line_height_3, "KETIK NOMOR MENU LALU TEKAN ENTER", 2);
 }
 
-void show_plane1() {
-	viewport_x = 200;
-    viewport_y = 500;
-	char* fileName = "assets/plane_bitmap.txt";
+void show_plane1(BitmapFont* bf, int mouse_y) {
+    int line_height_5 = bf->char_height*5;
+    int line_height_3 = bf->char_height*3;
 
-	struct f_Image* plane = f_loadImage(fileName);
-    plane->posX = vinfo.xres;
-    int t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
-    centerX = vinfo.xres/2/SCALE, fullY = vinfo.yres/SCALE - 1;
-    int delay = 0;
-	
-	system("clear");
+    int upperBound = window_y + 2*line_height_5 + line_height_3;
+    int lowerBound = window_y + 2*line_height_5 + 3*line_height_3;
 
-    while (RUNNING) {
+    printf("upperBound: %d, lowerBound: %d, mouse->positionY: %d\n", upperBound, lowerBound, mouse_y);
+    if (mouse_y > lowerBound && mouse_y < upperBound) {
+    	viewport_x = 200;
+        viewport_y = 500;
+    	char* fileName = "assets/plane_bitmap.txt";
 
-        plane->posX--;
-        if (plane->posX < -plane->width) {
-            plane->posX = vinfo.xres;
-            plane->posY += 7;
+    	struct f_Image* plane = f_loadImage(fileName);
+        plane->posX = vinfo.xres;
+        int t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+        centerX = vinfo.xres/2/SCALE, fullY = vinfo.yres/SCALE - 1;
+        int delay = 0;
+    	
+    	system("clear");
+
+        while (RUNNING) {
+
+            plane->posX--;
+            if (plane->posX < -plane->width) {
+                plane->posX = vinfo.xres;
+                plane->posY += 7;
+            }
+            drawObject(plane, 1);
+
+            drawLaser(centerX, fullY, 10, -10, SCALE, &t1);
+            drawLaser(vinfo.xres/18, vinfo.yres/9-1, 5, -3, 9, &t2);
+            drawLaser(centerX, fullY, 0, -10, SCALE, &t3);
+            drawLaser(centerX, fullY, -10, -10, SCALE, &t4);
+            drawLaser(vinfo.xres/20, vinfo.yres/10-1, -5, -10, 10, &t5);
+            drawLaser(centerX, fullY, -3, -2, SCALE, &t6);
+            if (delay %10 == 0) {
+                t1++; t2++; t3++; t4++; t5++; t6++;
+            }
+            delay++;
+
+            usleep(3000);
         }
-        drawObject(plane, 1);
-
-        drawLaser(centerX, fullY, 10, -10, SCALE, &t1);
-        drawLaser(vinfo.xres/18, vinfo.yres/9-1, 5, -3, 9, &t2);
-        drawLaser(centerX, fullY, 0, -10, SCALE, &t3);
-        drawLaser(centerX, fullY, -10, -10, SCALE, &t4);
-        drawLaser(vinfo.xres/20, vinfo.yres/10-1, -5, -10, 10, &t5);
-        drawLaser(centerX, fullY, -3, -2, SCALE, &t6);
-        if (delay %10 == 0) {
-            t1++; t2++; t3++; t4++; t5++; t6++;
-        }
-        delay++;
-
-        usleep(3000);
+        f_freeImage(plane);
     }
-    f_freeImage(plane);
 }
 
 void show_plane2() {

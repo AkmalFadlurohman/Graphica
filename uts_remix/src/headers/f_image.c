@@ -101,7 +101,7 @@ struct f_Image* f_loadImage(char* fileName) {
 
 	fptr = fopen(fileName, "r");
 	if (fptr == NULL) {
-		printf("Cannot open file \n");
+		printf("Cannot open fileX \n");
 		fclose(fptr);
 		return (NULL);
 	}

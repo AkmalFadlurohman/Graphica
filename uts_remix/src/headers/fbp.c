@@ -1,5 +1,8 @@
 #include "fbp.h"
 
+// mouse
+const char *device_mouse = "/dev/input/mice";
+
 //Game world
 unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
 int viewport_x;
@@ -25,6 +28,25 @@ int MARGIN_VERTICAL = 3;
 int MARGIN_HORIZONTAL = 3;
 
 //Bitmap plane variables
+
+// F0
+void drawPointer(Mouse* m) {
+    char* pointer = "100000000000011000000000001110000000000111100000000011111000000001111110000000111111100000011111111000001111111110000111111111100011111111111001111111111110111111111111111111111100001111011111000111001111100011000011111001000001111100000000011111000000001111100000000011111000000001111100000000011100000000000100";
+    int x = m->positionX; int y = m->positionY;
+    int width = 13; int height = 24;
+    int initx = x, inity = y;
+
+    for (x = initx; x < initx+width; x++) {
+        if (x > m->screen_max_x)
+            continue;
+        for (y = inity; y < inity+height; y++) {
+            if (y > m->screen_max_y)
+                break;
+            if (pointer[(y-inity)*width+(x-initx)]=='1')
+                f_drawPixel(x, y, rgbaToInt(255,255,255,0));    
+        }
+    }
+}
 
 // F1 | FBP Manipulations
 void initializeFBP() {
@@ -1230,5 +1252,167 @@ void fillPlane(struct VecLetter* vecletter, unsigned int color, unsigned int bou
             }
             
         }
+    }
+}
+
+// Bitmap Font
+BitmapFont* initBitmapFont(const char *filename) {
+    BitmapFont* bf = (BitmapFont*) malloc(sizeof(BitmapFont));
+    
+    bf->char_height = 0;
+    bf->num_of_char = 0;
+    bf->char_index = 0;
+    bf->char_width = 0;
+    bf->font = 0;
+
+    FILE *fptr;
+    size_t buffer_size = 80;
+    char *buffer = malloc(buffer_size * sizeof(char));
+    int i = 0, ret = 0;
+
+    // Read from external file: filename
+    fptr = fopen(filename, "r");
+    if (fptr == NULL){
+        perror("Cannot open file \n");
+        exit(0);
+    }
+
+    ret = fscanf(fptr, "%d %d\n", &bf->num_of_char, &bf->char_height);
+    if (ret != 2) {
+        perror ("Failed to read font specification!\n");
+    } else {
+        printf("num_of_char: %d\n", bf->num_of_char);
+        printf("char_height: %d\n", bf->char_height);
+    }
+    bf->char_index = (char*) malloc(bf->num_of_char * sizeof(char));
+    bf->font = (char**) malloc(bf->num_of_char * sizeof(char*));
+    bf->char_width = (int*) malloc(bf->num_of_char * sizeof(int));
+
+    while (-1 != getline(&buffer, &buffer_size, fptr) && 1 < bf->num_of_char) {
+        (bf->font)[i] = (char*) malloc(buffer_size * sizeof(char));
+        ret = 0; ret = sscanf(buffer, "%c|%d|%[^\n]s", &bf->char_index[i], &bf->char_width[i], bf->font[i]);
+        if (ret != 3) {
+            printf("Error reading line %d, only read %d\n", i+2, ret);
+        }
+        i++;
+    }
+
+    free(buffer);
+    fclose(fptr);
+
+    return bf;
+}
+
+int getBitmapCharIndex(BitmapFont *bf, char c) {
+    int i = 0;
+    for (i = 0; i < bf->num_of_char; i++) {
+        if (bf->char_index[i] == c)
+            return i;
+    }
+    return -1;
+}
+
+int drawBitmapChar(BitmapFont *bf, int x, int y, char c, int scale) {
+    int i = 0, j = 0, k = 0;
+    int idx = getBitmapCharIndex(bf, c);
+    int width = 4, pixel_length = 0;
+    char* pixel = 0;
+
+    if (idx == -1) {
+        return 0;
+    }
+    
+    width = bf->char_width[idx];
+    pixel = bf->font[idx];
+    pixel_length = strlen(pixel);
+
+    x = x / scale; y = y / scale;
+
+    for (j = 0; j < bf->char_height+2; j++)
+        for (i = 0; i < width+2; i++) {
+            if ((i == 0) || (i == width+1) || (j == 0) || (j == bf->char_height+1))
+                continue;
+            else {
+                if (k >= pixel_length) {
+                    continue;
+                }
+                if (pixel[k] == '1')
+                    drawPixelWithScale(i+x, j+y, rgbaToInt(255,255,255,0), scale);
+                k++;
+            }
+        }
+
+    return (width + 2) * scale;
+}
+
+void drawBitmapString(BitmapFont *bf, int x, int y, char* text, int scale) {
+    int len = strlen(text);
+    for (int i = 0; i < len; i++) {
+        x += drawBitmapChar(bf,x,y,text[i], scale);
+    }
+}
+
+// Mouse
+
+Mouse* initMouse(int screen_min_x, int screen_min_y, int screen_max_x, int screen_max_y, int speed) {
+    Mouse* m = (Mouse*) malloc(sizeof(Mouse));
+    
+    m->fd = open(device_mouse, O_RDWR);
+    if(m->fd == -1) {
+        printf("ERROR Opening %s\n", device_mouse);
+        return 0;
+    }
+
+    m->screen_max_x = screen_max_x;
+    m->screen_max_y = screen_max_y;
+    m->screen_min_x = screen_min_x;
+    m->screen_min_y = screen_min_y;
+    m->speed = speed;
+
+    m->isEvent = 0;
+    m->positionX = screen_min_x;
+    m->positionY = screen_min_y;
+    m->isRightClick = 0;
+    m->isLeftClick = 0;
+
+    return m;
+}
+
+void scanMouse(Mouse* m) {
+    int bytes, left, right, middle;
+    signed char x, y;
+    unsigned char data[3];
+
+    bytes = read(m->fd, data, sizeof(data));
+
+    if(bytes > 0) {
+        left = data[0] & 0x1;
+        right = data[0] & 0x2;
+        middle = data[0] & 0x4;
+
+        x = data[1];
+        y = data[2];
+        
+        // printf("x=%d, y=%d, left=%d, middle=%d, right=%d\n", x, y, left, middle, right);
+        if (x < 0)
+            m->positionX -= m->speed;
+        if (x > 0)
+            m->positionX += m->speed;
+        if (y > 0)
+            m->positionY -= m->speed;
+        if (y < 0)
+            m->positionY += m->speed;
+
+        if (m->positionY < m->screen_min_y) m->positionY = m->screen_min_y;
+        if (m->positionX < m->screen_min_x) m->positionX = m->screen_min_x;
+        if (m->positionY > m->screen_max_y) m->positionY = m->screen_max_y;
+        if (m->positionX > m->screen_max_x) m->positionX = m->screen_max_x;
+
+        if (right > 0) m->isRightClick = 1; else m->isRightClick = 0;
+        if (left > 0) m->isLeftClick = 1; else m->isLeftClick = 0;
+
+        m->isEvent = 1;
+    } else {
+        m->isEvent = 0;
     }
 }

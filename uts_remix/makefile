@@ -1,7 +1,7 @@
 make:
-	gcc -o build main.c headers/VectorPath.c headers/VectorPoint.c headers/VecLetter.c headers/fbp.c headers/f_image.c -lm
+	gcc -o bin/build src/main.c src/headers/VectorPath.c src/headers/VectorPoint.c src/headers/VecLetter.c src/headers/fbp.c src/headers/f_image.c -lm
 run :
 	make
-	./build
+	./bin/build
 clean:
-	rm build
+	rm "bin/build"

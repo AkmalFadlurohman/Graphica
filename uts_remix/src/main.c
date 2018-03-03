@@ -111,9 +111,11 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
         int offsetX = MARGIN_HORIZONTAL;
         int offsetY = MARGIN_VERTICAL;
         char input = 0;
+        clearScreen();
+        render();
         while (RUNNING && (input=getchar()) != 27) {
-
-            clearScreen();  
+            clearScreen();
+            render();
             // char input[100];
             // printf("%s: ", "Masukkan input");
             // scanf("%99[0-9a-zA-Z .]", input);
@@ -138,6 +140,13 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
             
             if (input == ' ') {
                 offsetX += MARGIN_HORIZONTAL*4;
+                render();
+                continue;
+            }
+            if (input == 13) {
+                offsetX = MARGIN_HORIZONTAL;
+                offsetY += (vinfo.yres/90)*MARGIN_VERTICAL;
+                render();
                 continue;
             }
             drawLetters(input, &offsetX, &offsetY);

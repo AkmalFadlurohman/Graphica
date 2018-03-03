@@ -36,6 +36,11 @@ int main() {
             clearWindow(screen, WINDOW_WIDTH, WINDOW_HEIGHT);
             drawMainMenu(screen, bitmapFont, window_x, window_y);
             drawPointer(screen, mouse);
+            
+            if (mouse->isRightClick)
+                printf("Right click event\n");
+            if (mouse->isLeftClick)
+                printf("Left click event\n");
         } 
     }
 

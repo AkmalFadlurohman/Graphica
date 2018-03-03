@@ -6,6 +6,7 @@ const char *template_bitmap_font = "data/template_bitmap_font.io";
 
 void drawMainMenu(BitmapFont* bf, int x, int y);
 void closeProgram(BitmapFont* bf, int mouse_y);
+void showVecLetters(BitmapFont* bf, int mouse_y);
 void show_plane1(BitmapFont* bf, int mouse_y);
 void show_plane2(BitmapFont* bf, int mouse_y);
 void show_plane3(BitmapFont* bf, int mouse_y);
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
     critColor = rgbaToInt(250,250,250,0);
     frameColor = rgbaToInt(247,247,247,0);
 
+    loadLetters("assets/VecLetterSpec.txt");
     while(RUNNING) {
         scanMouse(mouse);
         if(mouse->isEvent) {
@@ -49,6 +51,7 @@ int main(int argc, char **argv) {
                 mouse->positionY = window_y;
             }
             if (mouse->isLeftClick) {
+                showVecLetters(bitmapFont, mouse->positionY);
                 show_plane1(bitmapFont, mouse->positionY);
                 show_plane2(bitmapFont, mouse->positionY);
                 show_plane3(bitmapFont, mouse->positionY);
@@ -71,6 +74,9 @@ void closeProgram(BitmapFont* bf, int mouse_y) {
     int lowerBound = window_y + 2*line_height_5 + 7*line_height_3;
     
     if (mouse_y < lowerBound && mouse_y > upperBound) {
+        clearViewPort(rgbaToInt(0,0,0,0));
+        clearScreen();
+        render();
         exit(0);
     }
 }
@@ -85,6 +91,60 @@ void drawMainMenu(BitmapFont* bf, int x, int y) {
     drawBitmapString(bf, x, y + 2*line_height_5 + 3*line_height_3, " > ANIMASI PESAWAT 3", 3);
     drawBitmapString(bf, x, y + 2*line_height_5 + 4*line_height_3, " > PETA ITB", 3);
     drawBitmapString(bf, x, y + 2*line_height_5 + 6*line_height_3, "KELUAR", 2);
+}
+
+void showVecLetters(BitmapFont* bf, int mouse_y) {
+    viewport_x = 0;
+    viewport_y = 0;
+    int line_height_5 = bf->char_height*5;
+    int line_height_3 = bf->char_height*3;
+
+    int upperBound = window_y + 2*line_height_5;
+    int lowerBound = window_y + 2*line_height_5 + line_height_3;
+    
+    if (mouse_y < lowerBound && mouse_y > upperBound) {
+        clearScreen();
+        clearViewPort(rgbaToInt(0,0,0,0));
+        
+        render();
+        
+        char input[100];
+        printf("%s: ", "Masukkan input");
+        scanf("%99[0-9a-zA-Z ]", input);
+
+        for(int i = 0; input[i]; i++) {
+            input[i] = toupper(input[i]);
+        }
+
+        for (int i=0; i<vinfo.yres/17; i++) {
+          printf("\n");
+        }
+        printf("\n");
+        int f;
+
+        int offsetX = MARGIN_HORIZONTAL;
+        int offsetY = MARGIN_VERTICAL;
+        system("clear");
+
+        COLOR = rgbaToInt(255, 225, 0, 0);
+        BORDER_COLOR = rgbaToInt(255, 0, 0, 0);
+        
+        for (int i=0;i<strlen(input);i++) {
+            if (input[i] == ' ') {
+                offsetX += MARGIN_HORIZONTAL*4;
+                continue;
+            }
+            drawLetters(input[i], &offsetX, &offsetY);
+        }
+
+        char c = 0;
+        while (RUNNING && c != ESC) {
+            render();
+            scanf("%c", &c);
+        }
+    }
+
+    return;
 }
 
 void show_plane1(BitmapFont* bf, int mouse_y) {

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <linux/fb.h>
 #include <sys/mman.h>
+#include <ctype.h>
 #include <sys/ioctl.h>
 #include <math.h>
 #include "VectorPath.h"

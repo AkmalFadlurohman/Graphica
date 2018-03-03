@@ -1416,3 +1416,13 @@ void scanMouse(Mouse* m) {
         m->isEvent = 0;
     }
 }
+
+int scanLeftClick(Mouse* m) {
+    int bytes, left, right, middle;
+    signed char x, y;
+    unsigned char data[3];
+
+    bytes = read(m->fd, data, sizeof(data));
+
+    return bytes > 0;
+}

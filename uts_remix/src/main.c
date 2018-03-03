@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     critColor = rgbaToInt(250,250,250,0);
     frameColor = rgbaToInt(247,247,247,0);
 
-    loadLetters("assets/VecLetterSpec.txt");
+    
     while(RUNNING) {
         scanMouse(mouse);
         if(mouse->isEvent) {
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
                 mouse->positionY = window_y;
             }
             if (mouse->isLeftClick) {
-                showVecLetters(bitmapFont, mouse->positionY);
+                // showVecLetters(bitmapFont, mouse->positionY);
                 show_plane1(bitmapFont, mouse->positionY);
                 show_plane2(bitmapFont, mouse->positionY);
                 show_plane3(bitmapFont, mouse->positionY);
@@ -107,7 +107,9 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
         clearViewPort(rgbaToInt(0,0,0,0));
         
         render();
-        
+
+        loadLetters("assets/VecLetterSpec.txt");    
+
         char input[100];
         printf("%s: ", "Masukkan input");
         scanf("%99[0-9a-zA-Z ]", input);
@@ -120,7 +122,6 @@ void showVecLetters(BitmapFont* bf, int mouse_y) {
           printf("\n");
         }
         printf("\n");
-        int f;
 
         int offsetX = MARGIN_HORIZONTAL;
         int offsetY = MARGIN_VERTICAL;
@@ -169,12 +170,6 @@ void show_plane1(BitmapFont* bf, int mouse_y) {
 
         int stop = 0;
         while (RUNNING && stop == 0) {
-            // scanMouse(mouse);
-            if(mouse->isEvent) {
-                if (mouse->isRightClick) {
-                    stop = 1;
-                }
-            }
             plane->posX--;
             if (plane->posX < -plane->width) {
                 plane->posX = vinfo.xres;

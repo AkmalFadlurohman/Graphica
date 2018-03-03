@@ -160,5 +160,5 @@ Mouse* initMouse(int screen_min_x, int screen_min_y, int screen_max_x, int scree
 
 void scanMouse(Mouse* m);
 
-
+int scanLeftClick(Mouse* m);
 #endif

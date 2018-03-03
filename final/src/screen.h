@@ -74,6 +74,16 @@ void drawPixel(Screen* s, int x, int y, unsigned int color) {
     *(s->fbp + location + 3) = color >> 24;
 }
 
+void drawPixelWithScale(Screen* s, int x, int y, unsigned int color, int scale) {
+    long int location;
+    int i = 0, j = 0;
+    x = x*scale; y = y*scale;
+    for (i = 0; i < scale; i++)
+        for (j = 0; j < scale; j++) {
+            drawPixel(s, x+i, y+j, color);
+        }
+}
+
 unsigned int rgbaToInt(int r, int g, int b, int a) {
     return a << 24 | r << 16 | g << 8 | b;
 }

@@ -3,10 +3,13 @@
 #include <fcntl.h>
 #include "mouse.h"
 #include "screen.h"
+#include "bitmap_font.h"
 
 #define WINDOW_WIDTH 900
 #define WINDOW_HEIGHT 600
 #define MOUSE_SPEED 6
+
+const char *template_bitmap_font = "data/template_bitmap_font.io";
 
 int main() {
     Screen *screen = initScreen();
@@ -23,13 +26,16 @@ int main() {
         return 0;
     }
 
-    while (1) {
-        scanMouse(mouse);
-        if(mouse->isEvent) {
-            clearWindow(screen, WINDOW_WIDTH, WINDOW_HEIGHT);
-            drawPointer(screen, mouse);
-        } 
-    }
+    BitmapFont* bitmapFont = initBitmapFont(template_bitmap_font);
+    drawBitmapChar(screen, bitmapFont, 500, 500, 'A');
+
+    // while (1) {
+    //     scanMouse(mouse);
+    //     if(mouse->isEvent) {
+    //         clearWindow(screen, WINDOW_WIDTH, WINDOW_HEIGHT);
+    //         drawPointer(screen, mouse);
+    //     } 
+    // }
 
     return 0; 
 }

@@ -11,6 +11,8 @@
 
 const char *template_bitmap_font = "data/template_bitmap_font.io";
 
+void drawMainMenu(Screen* s, BitmapFont* bf, int x, int y);
+
 int main() {
     Screen *screen = initScreen();
     if (screen == 0) {
@@ -27,15 +29,26 @@ int main() {
     }
 
     BitmapFont* bitmapFont = initBitmapFont(template_bitmap_font);
-    drawBitmapChar(screen, bitmapFont, 500, 500, 'A');
 
-    // while (1) {
-    //     scanMouse(mouse);
-    //     if(mouse->isEvent) {
-    //         clearWindow(screen, WINDOW_WIDTH, WINDOW_HEIGHT);
-    //         drawPointer(screen, mouse);
-    //     } 
-    // }
+    while (1) {
+        scanMouse(mouse);
+        if(mouse->isEvent) {
+            clearWindow(screen, WINDOW_WIDTH, WINDOW_HEIGHT);
+            drawMainMenu(screen, bitmapFont, window_x, window_y);
+            drawPointer(screen, mouse);
+        } 
+    }
 
     return 0; 
+}
+
+
+void drawMainMenu(Screen* s, BitmapFont* bf, int x, int y) {
+    int line_height_5 = bf->char_height*5;
+    int line_height_3 = bf->char_height*3;
+    drawBitmapString(s, bf, x, y, "MENU UTAMA", 5);
+    drawBitmapString(s, bf, x, y + 2*line_height_5, "1. FONT", 3);
+    drawBitmapString(s, bf, x, y + 2*line_height_5 + line_height_3, "2. ANIMASI PESAWAT", 3);
+    drawBitmapString(s, bf, x, y + 2*line_height_5 + 2*line_height_3, "3. PETA ITB", 3);
+    drawBitmapString(s, bf, x, y + 2*line_height_5 + 4*line_height_3, "KETIK NOMOR MENU LALU TEKAN ENTER", 2);
 }

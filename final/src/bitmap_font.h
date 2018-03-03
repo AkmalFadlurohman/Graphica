@@ -11,7 +11,7 @@
 #include <sys/ioctl.h>
 #include "screen.h"
 
-#define SCALE 5
+#define SCALE 2
 #define WHITE (rgbaToInt(255,255,255,0))
 #define BLACK (rgbaToInt(0,0,0,0))
 #define RED rgbaToInt(255, 0, 0, 0)
@@ -80,37 +80,44 @@ int getBitmapCharIndex(BitmapFont *bf, char c) {
     return -1;
 }
 
-void drawBitmapChar(Screen *s, BitmapFont *bf, int x, int y, char c) {
+int drawBitmapChar(Screen *s, BitmapFont *bf, int x, int y, char c, int scale) {
     int i = 0, j = 0, k = 0;
     int idx = getBitmapCharIndex(bf, c);
     int width = 4, pixel_length = 0;
     char* pixel = 0;
 
     if (idx == -1) {
-        return;
+        return 0;
     }
     
     width = bf->char_width[idx];
     pixel = bf->font[idx];
     pixel_length = strlen(pixel);
 
+    x = x / scale; y = y / scale;
+
     for (j = 0; j < bf->char_height+2; j++)
         for (i = 0; i < width+2; i++) {
             if ((i == 0) || (i == width+1) || (j == 0) || (j == bf->char_height+1))
-                drawPixel(s, i+x, j+y, WHITE);
+                continue;
             else {
                 if (k >= pixel_length) {
-                    drawPixel(s, i+x, j+y, WHITE);
                     continue;
                 }
-                if (pixel[k] == '0')
-                    drawPixel(s, i+x, j+y, WHITE);
-                else
-                    drawPixel(s, i+x, j+y, RED);
+                if (pixel[k] == '1')
+                    drawPixelWithScale(s, i+x, j+y, WHITE, scale);
                 k++;
             }
         }
 
+    return (width + 2) * scale;
+}
+
+void drawBitmapString(Screen *s, BitmapFont *bf, int x, int y, char* text, int scale) {
+    int len = strlen(text);
+    for (int i = 0; i < len; i++) {
+        x += drawBitmapChar(s,bf,x,y,text[i], scale);
+    }
 }
 
 #endif

@@ -341,7 +341,9 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
 
         char c = 0;
         // Start animation and render
-       while (RUNNING && c != ESC) {
+        system("/bin/stty raw");
+
+        while (RUNNING && (c=getchar()) != 27) {
 
             clearViewPort(rgbaToInt(135,206,250,0));
             rotatePath(baling_baling, 10,  50, 60);
@@ -357,7 +359,7 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
             drawVectorPath(baling_baling, rgbaToInt(3,3,3,0),rgbaToInt(102,66,0,0), 500, 500);
 
             render();
-            scanf("%c", &c);
+
             if(c == 'w' || c == 'W'){
                 viewport_y -= VIEWPORT_SPEED;
             } else if(c == 'a' || c == 'A'){
@@ -393,6 +395,7 @@ void show_plane3(BitmapFont* bf, int mouse_y) {
                 viewport_y = WORLD_HEIGHT - viewport_height;
             usleep(3000);
         }
+        system("/bin/stty cooked");
     }
 }
 

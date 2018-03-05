@@ -535,7 +535,8 @@ void openMap(BitmapFont* bf, int mouse_y) {
         // Start animation and render
         system("/bin/stty raw");
     	while (RUNNING && (c=getchar()) != 27) {
-            if (c != 'w' && c != 'W' && c != 'A' && c != 'a' && c != 'S' && c != 's' && c != 'D' && c != 'd') {
+            if (c != 'w' && c != 'W' && c != 'A' && c != 'a' && c != 'S' && c != 's' && c != 'D' && c != 'd' && c != '1' && c != '2')
+            {
                 continue;
             }
     		clearScreen();
@@ -569,7 +570,22 @@ void openMap(BitmapFont* bf, int mouse_y) {
                 viewport_y += VIEWPORT_SPEED;
             } else if(c == 'd' || c == 'D'){
                 viewport_x += VIEWPORT_SPEED;
-            }
+            } else if (c == '1') {
+                if (renderBuilding == 1) {
+                    renderBuilding = 0;
+                } else {
+                    renderBuilding = 1;
+                }
+            } else if (c == '2') {
+                if (renderRoad == 1)
+                {
+                    renderRoad = 0;
+                }
+                else
+                {
+                    renderRoad = 1;
+                }
+            } 
     	}
         for (int i = 0; i < numOfGedung; i++) {
             freeVectorPath(gedung[i]);

@@ -26,10 +26,10 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    BitmapFont* bitmapFont = initBitmapFont(template_bitmap_font);
+    // BitmapFont* bitmapFont = initBitmapFont(template_bitmap_font);
 
-    critColor = rgbaToInt(250,250,250,0);
-    frameColor = rgbaToInt(247,247,247,0);
+    // critColor = rgbaToInt(250,250,250,0);
+    // frameColor = rgbaToInt(247,247,247,0);
 
     
     while(RUNNING) {

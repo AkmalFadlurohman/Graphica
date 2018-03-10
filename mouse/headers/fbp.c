@@ -7,8 +7,10 @@ const char *device_mouse = "/dev/input/mice";
 unsigned int world[WORLD_WIDTH][WORLD_HEIGHT]; 
 int viewport_x;
 int viewport_y;
-int viewport_width = 640;
-int viewport_height = 480;
+int viewport_width;
+int viewport_height;
+// int viewport_width = 640;
+// int viewport_height = 480;
 
 //FBP variables
 char *fbp = 0;
@@ -94,6 +96,10 @@ void initializeFBP() {
 
     // Figure out the size of the screen in bytes
     screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
+
+    viewport_width = vinfo.xres - 10;
+    viewport_height = vinfo.yres - 10;
+
 
     // Map the device to memory
     fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
